@@ -63,6 +63,64 @@
     return out;
   }
 
-  var API = { AVGW: AVGW, DEFAULT: DEFAULT, RANGES: RANGES, SRC: SRC, LABEL: LABEL, inflows: inflows, replay: replay };
+  // 판매 x개를 입고 층(layers)에서 뺀다. fifo면 오래된 층부터, 아니면 비율대로. 뺀 몫을 층별로 돌려준다.
+  function draw(layers, x, fifo) {
+    var take = layers.map(function () { return 0; }), tot = layers.reduce(function (a, l) { return a + l.left; }, 0);
+    if (x <= 0 || tot <= 0) return take;
+    x = Math.min(x, tot);
+    if (fifo) { for (var i = 0; i < layers.length && x > 1e-12; i++) { var k = Math.min(layers[i].left, x); take[i] = k; layers[i].left -= k; x -= k; } }
+    else { for (i = 0; i < layers.length; i++) { k = layers[i].left / tot * x; take[i] = k; layers[i].left -= k; } }
+    return take;
+  }
+
+  // 3) 출처 분해: 발주종료 잔고 구성 + 입고분마다의 끝(정책 시뮬레이터 경로)
+  function decompose(d, inf, sim, fifo) {
+    if (inf.eo < 0 || inf.gapBeforeEo) return null;
+    var t0 = inf.eo, layers = [];
+    var ev = inf.events.slice();
+    for (var t = 0; t < t0; t++) {
+      ev.filter(function (e) { return e.t === t; }).forEach(function (e) { layers.push({ type: e.type, t: e.t, q: e.q, left: e.q }); });
+      draw(layers, d.sale[t], fifo);
+    }
+    var atEo = {}; SRC.forEach(function (s) { atEo[s] = 0; });
+    layers.forEach(function (l) { atEo[l.type] += l.left; });
+    var fate = {}; SRC.forEach(function (s) { fate[s] = { full: 0, disc: 0, md: 0, left: 0, resid: 0 }; });
+    if (sim) {
+      for (t = t0; t < inf.n; t++) {
+        ev.filter(function (e) { return e.t === t; }).forEach(function (e) { layers.push({ type: e.type, t: e.t, q: e.q, left: e.q }); });
+        if (sim.term >= 0 && t >= sim.term) break;
+        var dc = sim.disc[t] || 0, take = draw(layers, sim.sale[t] || 0, fifo);
+        take.forEach(function (k, i) { var f = fate[layers[i].type]; if (dc) { f.disc += k; f.md += k * d.price * dc / 100; } else f.full += k; });
+      }
+      layers.forEach(function (l) { fate[l.type].left += l.left; });
+    }
+    return { atEo: atEo, fate: fate };
+  }
+
+  // 전체: 상품마다 입고 추정·분해(FIFO, 평균 소진), 정책 시뮬레이터 손실을 출처별로 나눔
+  function runAll(items, S, PM, P, A) {
+    var rows = items.map(function (d) {
+      var inf = inflows(d, S), sim = null;
+      if (PM && inf.eo >= 0) { var it = PM.prepItem(d, A); if (it.scope) sim = PM.simulate(it, P, A); }
+      var f = decompose(d, inf, sim, true), a = decompose(d, inf, sim, false);
+      [f, a].forEach(function (x) { if (x && sim) SRC.forEach(function (s) { x.fate[s].resid = x.fate[s].left * d.cost * A.loss / 100; }); });
+      return { d: d, inf: inf, sim: sim, fifo: f, avg: a };
+    });
+    function total(key) {
+      var at = {}, loss = {}, md = {}, resid = {}, left = {};
+      SRC.forEach(function (s) { at[s] = 0; loss[s] = 0; md[s] = 0; resid[s] = 0; left[s] = 0; });
+      rows.forEach(function (r) { var x = r[key]; if (!x) return; SRC.forEach(function (s) {
+        at[s] += x.atEo[s] * r.d.cost; if (r.sim) { md[s] += x.fate[s].md; resid[s] += x.fate[s].resid; loss[s] += x.fate[s].md + x.fate[s].resid; left[s] += x.fate[s].left * r.d.cost; } }); });
+      var sumAt = SRC.reduce(function (a, s) { return a + at[s]; }, 0), sumLoss = SRC.reduce(function (a, s) { return a + loss[s]; }, 0);
+      return { at: at, loss: loss, md: md, resid: resid, left: left, sumAt: sumAt, sumLoss: sumLoss };
+    }
+    var dec = rows.filter(function (r) { return r.fifo; });
+    return { rows: rows, fifo: total("fifo"), avg: total("avg"), nDec: dec.length,
+             nGap: rows.filter(function (r) { return r.inf.gapBeforeEo && r.inf.eo >= 0; }).length,
+             nNoEo: rows.filter(function (r) { return r.inf.eo < 0; }).length,
+             mismatch: rows.reduce(function (a, r) { return a + r.inf.mismatch; }, 0) };
+  }
+
+  var API = { AVGW: AVGW, DEFAULT: DEFAULT, RANGES: RANGES, SRC: SRC, LABEL: LABEL, inflows: inflows, replay: replay, draw: draw, decompose: decompose, runAll: runAll };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.DispSource = API;
 })(typeof window !== "undefined" ? window : globalThis);
