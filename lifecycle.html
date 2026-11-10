@@ -341,6 +341,44 @@ function SourceNote({d, sr, fifo}) {
   </div>`;
 }
 
+function SourceSummary({SR, sset, setSset, fifo, setFifo}) {
+  if (!SR) return null;
+  const T = fifo ? SR.fifo : SR.avg, U = fifo ? SR.avg : SR.fifo, ORD = ["open","init","add","pre","after"];
+  const pct = (v, t) => t ? Math.round(v/t*100) : 0;
+  const fate = {full:0, disc:0, left:0}, preQ = {q:0};
+  SR.rows.forEach(r => { const x = fifo ? r.fifo : r.avg; if (!x || !r.sim) return; fate.full += x.fate.pre.full; fate.disc += x.fate.pre.disc; fate.left += x.fate.pre.left; });
+  const ft = fate.full + fate.disc + fate.left;
+  const Bar = ({v, t}) => html`<div style=${{display:"flex",height:16,borderRadius:8,overflow:"hidden",background:"#F1F3F6"}}>${ORD.filter(k => v[k] > 0).map(k => html`<div key=${k} title=${SM.LABEL[k] + " " + pct(v[k], t) + "%"} style=${{flex:v[k], background:SRCC[k]}}></div>`)}</div>`;
+  const sl = (k, lab) => { const r = SM.RANGES[k]; return html`<label style=${{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#64748B"}}>${lab}<input type="range" min=${r.min} max=${r.max} step=${r.step} value=${sset[k]} onChange=${e => setSset({...sset, [k]: +e.target.value})} style=${{width:110,accentColor:"#EA580C"}} /><b style=${{color:"#0F172A",minWidth:44}}>${sset[k]}${r.unit}</b></label>`; };
+  return html`<section className="card" style=${{padding:"16px 18px",display:"flex",flexDirection:"column",gap:12}}>
+    <div style=${{display:"flex",justifyContent:"space-between",gap:12,flexWrap:"wrap",alignItems:"flex-end"}}>
+      <div><div style=${{fontSize:12,color:"#C2410C",fontWeight:600}}>재고 출처 · 입고량은 SCM이 직접 움직이는 레버</div>
+        <div style=${{fontSize:18,fontWeight:700,letterSpacing:"-.01em",marginTop:2}}>끝나기 직전에 들어온 물량이 결국 무엇이 됐는가</div></div>
+      <div className="seg">${[[true,"FIFO(오래된 것부터)"],[false,"평균 소진"]].map(([v,t]) => html`<button key=${t} className=${fifo===v?"on":""} onClick=${() => setFifo(v)}>${t}</button>`)}</div>
+    </div>
+    <div style=${{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
+      <div style=${{display:"flex",flexDirection:"column",gap:6}}>
+        <div style=${{fontSize:12.5,color:"#64748B"}}>발주종료 때 남은 재고(원가 ${man(T.sumAt)})</div>
+        <div style=${{fontSize:24,fontWeight:700,color:"#C2410C"}}>종료 직전 입고 ${pct(T.at.pre, T.sumAt)}%</div>
+        <${Bar} v=${T.at} t=${T.sumAt} />
+        <div style=${{display:"flex",flexWrap:"wrap",gap:"2px 12px",fontSize:12,color:"#334155"}}>${ORD.filter(k => T.at[k] > 0).map(k => html`<span key=${k}><i style=${{display:"inline-block",width:8,height:8,borderRadius:2,background:SRCC[k],marginRight:5}}></i>${SM.LABEL[k]} ${pct(T.at[k], T.sumAt)}%</span>`)}</div>
+      </div>
+      <div style=${{display:"flex",flexDirection:"column",gap:6}}>
+        <div style=${{fontSize:12.5,color:"#64748B"}}>처분 손실(정책 시뮬레이터 추정 ${man(T.sumLoss)})</div>
+        <div style=${{fontSize:24,fontWeight:700,color:"#C2410C"}}>종료 직전 입고 몫 ${pct(T.loss.pre, T.sumLoss)}%</div>
+        <${Bar} v=${T.loss} t=${T.sumLoss} />
+        <div style=${{fontSize:12,color:"#334155"}}>종료 직전 입고분 ${Math.round(ft)}개의 끝: 정상가 판매 ${pct(fate.full, ft)}% · 할인 판매 ${pct(fate.disc, ft)}% · 남아서 처리 ${pct(fate.left, ft)}%</div>
+      </div>
+      <div style=${{display:"flex",flexDirection:"column",gap:8,fontSize:12.5,color:"#334155",background:"#FFF7ED",border:"1px solid #FBD9B8",borderRadius:12,padding:"10px 12px"}}>
+        <b style=${{color:"#C2410C"}}>가상 설정 <span style=${{fontWeight:500,color:"#9A6B4A"}}>· 실제 사내 기준 아님</span></b>
+        ${sl("PRE", "직전 범위")}${sl("BIG", "큰 물량")}
+        <div style=${{fontSize:11.5,color:"#9A6B4A",lineHeight:1.5}}>종료 직전 입고 = 발주종료 전 ${sset.PRE}주 이내 + 직전 ${SM.AVGW}주 주평균 판매의 ${sset.BIG}주 치 이상. ${fifo ? "평균 소진" : "FIFO"}으로 가정하면 잔고 비중 ${pct(T.at.pre, T.sumAt)}% → ${pct(U.at.pre, U.sumAt)}%, 손실 몫 ${pct(T.loss.pre, T.sumLoss)}% → ${pct(U.loss.pre, U.sumLoss)}%.</div>
+      </div>
+    </div>
+    <div style=${{fontSize:11.5,color:"#94A3B8",lineHeight:1.6}}>입고는 주별 재고·판매로 역산한 추정이고, 출처 분해는 ${fifo ? "FIFO" : "평균 소진"} 가정입니다. 손실은 정책 시뮬레이터에서 정한 설정(가상 설정·반응 가정)으로 발주종료 뒤를 계산한 추정이며 실적이 아닙니다. 분해 대상 ${SR.nDec}개 · 발주 중 ${SR.nNoEo}개 제외 · 추정 불가 ${SR.nGap}개. 가상 데이터는 발주종료 직전 대량 입고가 생기도록 만들었으므로, 이 비중은 주장이 아니라 화면을 읽는 방법을 보여 주는 예시입니다. <a href="policy.html" style=${{color:"#1D4ED8"}}>정책 시뮬레이터 →</a></div>
+  </section>`;
+}
+
 function Criteria({lim}) {
   const R = [["신상품 진행", "출시 12주 미만"], ["정리 완료", "발주종료 뒤 재고 0개로 판매종료"], ["종료 지연", "발주종료 " + lim + "주 이상 지났는데 재고 남음"], ["신상품 부진", "출시 12주 주평균이 전체 평균(" + AVG12.toFixed(1) + "개)의 40% 미만"], ["운영 중", "위 네 가지에 해당하지 않는 건"]];
   return html`<section className="card crit">
@@ -383,6 +421,7 @@ function App() {
         <div className="rule"><label htmlFor="m">종료 지연 기준</label><input id="m" type="range" min="4" max="26" step="1" value=${lim} onChange=${e=>setLim(+e.target.value)} /><b>${lim}주</b></div>
       </div>
     </header>
+    <${SourceSummary} SR=${SR} sset=${sset} setSset=${setSset} fifo=${fifo} setFifo=${setFifo} />
     <${Criteria} lim=${lim} />
     <section className="kpis">
       <div className="card kpi">
