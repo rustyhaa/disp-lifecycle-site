@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>상품 생애주기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --ink:#0F172A; --ink2:#334155; --mute:#64748B; --faint:#94A3B8;
+  --line:#E7E9EE; --line2:#F1F3F6; --accent:#3B6CF6; --accent-ink:#1D4ED8; --accent-soft:#EEF3FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+.app{max-width:1560px;margin:0 auto;padding-block:18px 14px;padding-left:max(clamp(16px,2vw,32px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,2vw,32px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3B6CF6,#1E3A8A);display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(59,108,246,.6)}
+.crumb{font-size:12px;color:var(--mute);font-weight:500;letter-spacing:.02em}
+h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.topr{display:flex;align-items:center;gap:12px}
+.stamp{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.live{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 0 3px #D1FAE5}
+.rule{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px}
+.rule input[type=range]{width:140px;accent-color:var(--accent)}
+.rule b{min-width:42px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
+.kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.kl{font-size:13px;color:var(--mute);font-weight:500}
+.kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kv small{font-size:15px;font-weight:600;color:var(--mute);margin-left:3px}
+.ks{font-size:12px;color:var(--mute)}
+.dist{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:4px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
+.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.main{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px;align-items:start}
+.listhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2)}
+.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.seg .n{font-size:11px;color:var(--faint);font-weight:500}
+.search{height:34px;width:180px;border:1px solid var(--line);border-radius:9px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3 3'/%3E%3C/svg%3E") no-repeat 11px center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11.5px;font-weight:500;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+tr.r{cursor:pointer;transition:background .12s}
+tr.r:hover{background:#F8FAFC}
+tr.r.sel{background:var(--accent-soft)}
+tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.num{text-align:right}
+.pn{font-weight:600}
+.pk{font-size:11.5px;color:var(--mute);margin-top:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.arrow{color:var(--faint);margin:0 4px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600}
+.pill i{width:6px;height:6px;border-radius:50%}
+.mult{font-weight:600}
+.det{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dt{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dm{font-size:13px;color:var(--mute);margin-top:4px}
+.chartwrap{position:relative}
+.tip{position:absolute;pointer-events:none;background:#0F172A;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px -8px rgba(15,23,42,.5);white-space:nowrap;transform:translate(-50%,-100%)}
+.tip b{font-weight:600}
+.tip span{color:#94A3B8}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
+.st .l{font-size:12px;color:var(--mute)}
+.st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+.st .s{font-size:11.5px;color:var(--mute);margin-top:2px}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sec{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.tl{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding-bottom:7px;position:relative}
+.ev:not(:last-child):before{content:"";position:absolute;left:8px;top:16px;bottom:0;width:2px;background:var(--line2)}
+.ev .d{width:10px;height:10px;border-radius:50%;margin:4px 0 0 4px;border:2px solid #fff;box-shadow:0 0 0 1.5px currentColor}
+.ev .t{font-size:13px;font-weight:600}
+.ev .x{font-size:12px;color:var(--mute)}
+.ev .w{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.field label{font-size:12px;color:var(--mute)}
+.field input{height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;background:#fff}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.save{height:36px;width:100%;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.foot{font-size:12px;color:var(--faint);line-height:1.6}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;font-size:12.5px;color:var(--mute)}
+.pager div{display:flex;gap:6px}
+.pager button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer}
+.pager button:disabled{color:var(--faint);cursor:default;background:var(--line2)}
+.tw{overflow-x:auto}
+.tw table{min-width:640px}
+.save.ok{background:#047857}
+.save.bad{background:#B91C1C}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
+@media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
+.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
+.crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
+@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+</style>
+</style>
+</head>
+<body>
+<style>
+.nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
+.nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
+h1{white-space:nowrap}
+@media (max-width:560px){.nav{overflow-x:auto;max-width:100%;margin-left:0 !important}h1{white-space:normal}}
+.nav a.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.stg{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2)}
+.stg i{width:7px;height:7px;border-radius:2px;display:inline-block}
+.dcnt{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;font-size:11.5px;font-weight:600;color:#1D4ED8;background:#EEF3FF}
+.link{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap}
+.link:hover{background:#EAF0FF}
+.dh-r{display:flex;align-items:center;gap:8px}
+.dl{display:flex;flex-direction:column;gap:8px}
+.drow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line2);border-radius:12px;background:#F8FAFC}
+.drow .q{font-size:12px;font-weight:700;color:#1D4ED8;background:#EEF3FF;border-radius:6px;padding:2px 7px}
+.drow .p{font-size:12.5px;font-weight:600}
+.drow .x{font-size:11.5px;color:var(--mute);margin-top:2px}
+.drow .r{display:flex;align-items:center;gap:8px}
+.empty{font-size:12.5px;color:var(--mute);padding:12px;border:1px dashed var(--line);border-radius:12px;line-height:1.6}
+.crit{grid-template-columns:2.1fr repeat(5,minmax(0,1fr))}
+.kpis{grid-template-columns:1.7fr 1fr 1fr 1fr}
+@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div id="root"><div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">데이터 불러오는 중…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="policy.js"></script>
+<script>
+let ITEMS = [], META = {}, AVG12 = 0;
+const {useState, useMemo, useRef} = React;
+const html = htm.bind(React.createElement);
+const J = {
+  "신상품 진행": {fg:"#6D28D9", bg:"#F3EEFF", dot:"#8B5CF6"},
+  "운영 중":     {fg:"#047857", bg:"#E7F7EF", dot:"#10B981"},
+  "종료 지연":   {fg:"#C2410C", bg:"#FFF1E8", dot:"#F26B2A"},
+  "신상품 부진": {fg:"#8A5A00", bg:"#FBF3DE", dot:"#D49B1F"},
+  "정리 완료":   {fg:"#475569", bg:"#F1F3F6", dot:"#A3ABB8"}
+};
+const ORDER = ["종료 지연","신상품 부진","운영 중","신상품 진행","정리 완료"];
+// 단계 값은 가상 코드: 1 신상품 · 2 정상 · 3 발주종료 · 4 판매종료
+const STG = {1:{t:"신상품", c:"#A78BFA"}, 2:{t:"정상", c:"#34D399"}, 3:{t:"발주종료", c:"#FBBF24"}, 4:{t:"판매종료", c:"#CBD2DC"}};
+const DJ = {"반응":{fg:"#1D4ED8",bg:"#EEF3FF",dot:"#3B6CF6"},"무반응":{fg:"#C2410C",bg:"#FFF1E8",dot:"#F26B2A"},"장기미해제":{fg:"#8A5A00",bg:"#FBF3DE",dot:"#D49B1F"},"보류":{fg:"#475569",bg:"#F1F3F6",dot:"#A3ABB8"}};
+const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
+const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
+const idx = (ws, w) => w ? ws.indexOf(w) : -1;
+const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
+const dispLink = d => "index.html#item=" + encodeURIComponent(d.name);
+// 정책 시뮬레이터에서 정한 값(브라우저 저장, 없거나 막히면 기본값)으로 상품마다 정책 단계 전환 시점을 계산해 시간축에 얹는다
+const PM = window.DispPolicy || null, PSET = PM ? PM.load() : null;
+const PSTG = {1:{t:"정책 1단계", c:"#93B4FB"}, 2:{t:"정책 2단계", c:"#3B6CF6"}, 3:{t:"종료 심사", c:"#B91C1C"}};
+function policyOf(d) { if (!PM) return null; const it = PM.prepItem(d, PSET.A); if (!it.scope) return {scope:false, why:it.why}; return {scope:true, it, p:PM.simulate(it, PSET.P, PSET.A), dl:PM.delay(it, PSET.P)}; }
+
+function prep(RAW, end) { return RAW.map(d => {
+  const n = d.weeks.length, li = idx(d.weeks, d.launch), ei = idx(d.weeks, d.eo), oi = idx(d.weeks, d.soldOut);
+  const ds = d.disp.map(x => ({...x, a: idx(d.weeks, x.start), b: x.rel ? idx(d.weeks, x.rel) : n}));
+  const first12 = li >= 0 && n - li >= 12 ? avg(d.sale.slice(li, li+12)) : null;
+  const normal = d.sale.filter((v,i) => d.status[i] === 2);
+  const age = li >= 0 ? n - 1 - li : null;
+  const sinceEo = ei >= 0 ? n - 1 - ei : null;
+  const lingering = ei >= 0 && oi < 0 ? sinceEo : null;
+  const lifeAmt = d.sale.reduce((a,v,i) => a + v*d.price*(1-(d.disc[i]||0)/100), 0);
+  return {...d, pol: policyOf(d), n, li, ei, oi, ds, first12, normQ: avg(normal), age, sinceEo, lingering, lifeAmt, stkNow: d.stock[n-1], ongoing: ds.some(x => !x.rel)};
+}); }
+
+function judge(d, lim) {
+  if (d.li >= 0 && d.age < 12) return "신상품 진행";
+  if (d.oi >= 0) return "정리 완료";
+  if (d.lingering !== null && d.lingering >= lim && d.stkNow > 0) return "종료 지연";
+  if (d.first12 !== null && d.first12 < AVG12*0.4) return "신상품 부진";
+  return "운영 중";
+}
+function djudge(x) {
+  if (x.onW < 4 || x.preQ < 0.5) return "보류";
+  if (!x.rel && x.onW >= 24) return "장기미해제";
+  if (x.onQ >= 1.5*x.preQ || (x.stk0 > 0 && x.stkEnd <= 0)) return "반응";
+  return "무반응";
+}
+function Pill({j, P}) { const c = (P||J)[j]; return html`<span className="pill" style=${{color:c.fg, background:c.bg}}><i style=${{background:c.dot}}></i>${j}</span>`; }
+
+function Spark({d}) {
+  const W=120, H=30, n=d.n, mx=Math.max(1, ...d.sale);
+  const x = i => 1 + i*(W-2)/Math.max(1,n-1), y = v => H-2 - (H-6)*Math.max(0,v)/mx;
+  const line = d.sale.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1)).join(" ");
+  return html`<svg width=${W} height=${H} viewBox=${`0 0 ${W} ${H}`}>
+    ${d.ds.map((s,k) => html`<rect key=${k} x=${x(s.a)} y="0" width=${Math.max(1.5, x(Math.min(s.b,n-1)) - x(s.a))} height=${H} fill="#3B6CF6" opacity="0.12" rx="2"></rect>`)}
+    ${d.ei >= 0 && html`<line x1=${x(d.ei)} x2=${x(d.ei)} y1="2" y2=${H-2} stroke="#F59E0B" strokeWidth="1.2"></line>`}
+    <path d=${line + ` L${x(n-1).toFixed(1)},${H-1} L1,${H-1} Z`} fill="#94A3B8" opacity="0.12"></path>
+    <path d=${line} fill="none" stroke="#64748B" strokeWidth="1.3" strokeLinejoin="round"></path>
+  </svg>`;
+}
+function niceMax(v) { if (v <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v/p; return (m<=2?2:m<=5?5:10)*p; }
+
+function Chart({d}) {
+  const [hv, setHv] = useState(null);
+  const ref = useRef(null);
+  const W=680, H=236, L=44, R=48, T=62, B=34, n=d.n, cw=(W-L-R)/n;
+  const smx = niceMax(Math.max(1, ...d.sale)), kmx = niceMax(Math.max(1, ...d.stock));
+  const ys = v => H-B - (H-B-T)*Math.max(0,v)/smx, yk = v => H-B - (H-B-T)*Math.max(0,v)/kmx;
+  const cx = i => L + cw*(i+0.5), bx = i => L + cw*i;
+  const segs = []; d.status.forEach((s,i) => { if (segs.length && segs[segs.length-1].s === s) segs[segs.length-1].b = i+1; else segs.push({s, a:i, b:i+1}); });
+  const sline = d.stock.map((v,i)=>(i?"L":"M")+cx(i).toFixed(1)+","+yk(v).toFixed(1)).join(" ");
+  const inD = i => d.ds.some(s => i >= s.a && i < s.b);
+  const step = Math.max(1, Math.round(n/8)); const ticks = []; for (let q=0;q<n;q+=step) ticks.push(q);
+  const move = e => { const r = ref.current.getBoundingClientRect(); const i = Math.floor(((e.clientX - r.left)*W/r.width - L)/cw); setHv(i >= 0 && i < n ? i : null); };
+  const stgAt = i => (STG[d.status[i]] || {}).t;
+  return html`<div className="chartwrap">
+    <svg ref=${ref} viewBox=${`0 0 ${W} ${H}`} width="100%" onMouseMove=${move} onMouseLeave=${()=>setHv(null)} style=${{display:"block"}}>
+      <defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#0F172A" stopOpacity="0.08"></stop><stop offset="1" stopColor="#0F172A" stopOpacity="0"></stop></linearGradient></defs>
+      ${segs.map((g,k) => html`<g key=${"s"+k}>
+        <rect x=${bx(g.a)} y=${T-34} width=${cw*(g.b-g.a)} height="8" fill=${STG[g.s].c} rx="2"></rect>
+        ${(g.b-g.a)*cw > 44 && html`<text x=${bx(g.a)+2} y=${T-39} fontSize="10.5" fill="#475569" fontWeight="600">${STG[g.s].t + " · " + (g.b-g.a) + "주"}</text>`}
+      </g>`)}
+      ${d.pol && d.pol.scope && html`<g>
+        <text x=${L-8} y=${T-23} fontSize="10.5" fill="#94A3B8" textAnchor="end">정책</text>
+        ${d.pol.p.stage.map((v,i) => v ? html`<rect key=${"p"+i} x=${bx(i)} y=${T-28} width=${cw+0.3} height="5" fill=${PSTG[v].c}></rect>` : null)}
+      </g>`}
+      ${d.ds.map((s,k) => html`<g key=${"d"+k}>
+        <rect x=${bx(s.a)} y=${T-20} width=${Math.max(cw, cw*(s.b-s.a))} height=${H-B-T+20} fill="#3B6CF6" opacity="0.07"></rect>
+        <line x1=${bx(s.a)} x2=${bx(s.a)} y1=${T-20} y2=${H-B} stroke="#3B6CF6" strokeWidth="1.3"></line>
+        <text x=${bx(s.a)+4} y=${T-10} fontSize="10.5" fill="#1D4ED8" fontWeight="600">${"처분 " + s.seq}</text>
+      </g>`)}
+      ${[0,0.5,1].map(f => html`<g key=${f}>
+        <line x1=${L} x2=${W-R} y1=${ys(smx*f)} y2=${ys(smx*f)} stroke=${f===0?"#E2E8F0":"#F1F3F6"}></line>
+        <text x=${L-8} y=${ys(smx*f)+4} fontSize="10.5" fill="#94A3B8" textAnchor="end">${Math.round(smx*f)}</text>
+        <text x=${W-R+8} y=${yk(kmx*f)+4} fontSize="10.5" fill="#94A3B8">${Math.round(kmx*f)}</text>
+      </g>`)}
+      <text x=${L-8} y=${T-39} fontSize="10.5" fill="#94A3B8" textAnchor="end">단계</text>
+      <text x=${W-R+8} y=${T-10} fontSize="10.5" fill="#94A3B8">재고</text>
+      <text x=${L-8} y=${T-10} fontSize="10.5" fill="#94A3B8" textAnchor="end">판매</text>
+      ${d.sale.map((v,i)=>{ const h=Math.max(v>0?1.5:0, H-B-ys(v)); return html`<rect key=${i} x=${bx(i)+cw*0.15} y=${H-B-h} width=${cw*0.7} height=${h} rx=${Math.min(1.5,cw*0.2)} fill=${inD(i) ? "#3B6CF6" : d.status[i] === 1 ? "#B9A6F5" : d.status[i] === 3 ? "#E3B65A" : "#B4BDCA"} opacity=${hv===null||hv===i?1:0.55}></rect>`; })}
+      <path d=${sline + ` L${cx(n-1).toFixed(1)},${H-B} L${cx(0).toFixed(1)},${H-B} Z`} fill="url(#sg)"></path>
+      <path d=${sline} fill="none" stroke="#0F172A" strokeWidth="1.6" strokeLinejoin="round"></path>
+      ${d.oi >= 0 && html`<g><circle cx=${cx(d.oi)} cy=${yk(0)} r="4.5" fill="#fff" stroke="#0F172A" strokeWidth="1.8"></circle>
+        <text x=${cx(d.oi) + (d.oi > n*0.75 ? -8 : 8)} y=${yk(0)-10} fontSize="11" fill="#0F172A" fontWeight="600" textAnchor=${d.oi > n*0.75 ? "end" : "start"}>재고 소진</text></g>`}
+      ${ticks.map(q => html`<text key=${q} x=${cx(q)} y=${H-B+20} fontSize="10.5" fill="#94A3B8" textAnchor="middle">${wkLabel(d.weeks[q])}</text>`)}
+      ${hv !== null && html`<g><line x1=${cx(hv)} x2=${cx(hv)} y1=${T-20} y2=${H-B} stroke="#0F172A" strokeOpacity="0.25"></line><circle cx=${cx(hv)} cy=${yk(d.stock[hv])} r="3.5" fill="#0F172A"></circle></g>`}
+    </svg>
+    ${hv !== null && html`<div className="tip" style=${{left: (cx(hv)/W*100)+"%", top: (Math.min(ys(d.sale[hv]), yk(d.stock[hv]))/H*100 - 3)+"%"}}>
+      <b>${wkLabel(d.weeks[hv])}</b> <span>· ${stgAt(hv)}${inD(hv) ? " · 처분 중" : ""}</span><br/>
+      판매 <b>${d.sale[hv]}개</b> · 재고 <b>${d.stock[hv]}개</b>${d.disc[hv] ? html` · 할인 <b>${d.disc[hv]}%</b>` : null}
+    </div>`}
+  </div>`;
+}
+
+function Detail({d, lim}) {
+  const j = judge(d, lim);
+  const now = STG[d.status[d.n-1]].t;
+  const evs = [{t:"출시", x:d.launch ? d.cat : "데이터 시작 전 출시", w:d.launch || d.weeks[0], c:"#8B5CF6"}];
+  if (d.ei >= 0) evs.push({t:"발주종료", x:"입고 끝 · 남은 재고만 판매", w:d.eo, c:"#F59E0B"});
+  d.ds.forEach(s => evs.push({t:"처분 " + s.seq + "회차" + (s.rel ? "" : " · 진행 중"), x:s.rel ? wkLabel(s.start) + " – " + wkLabel(s.rel) + (s.relSrc === "AUTO" ? " · 자동해제" : "") : s.onW + "주째", w:s.start, c:"#3B6CF6"}));
+  if (d.oi >= 0) evs.push({t:"판매종료", x:"재고 소진", w:d.soldOut, c:"#64748B"});
+  const last = d.ds[d.ds.length-1];
+  return html`<section className="card det">
+    <div className="dh">
+      <div><div className="dt">${d.name}</div><div className="dm">${d.cat} · ${d.launch ? wkLabel(d.launch) + " 출시" : "'25 W01 이전 출시"} · 지금 ${now}${d.sinceEo !== null && d.oi < 0 ? " " + d.sinceEo + "주째" : ""}${d.ongoing ? " · 처분 중" : ""}</div></div>
+      <div className="dh-r">${last && html`<a className="link" href=${dispLink(d)}>처분 화면에서 보기 →</a>`}<${Pill} j=${j} /></div>
+    </div>
+    <div>
+      <div className="legend" style=${{marginBottom:6, flexWrap:"wrap"}}>
+        ${[1,2,3,4].map(s => html`<span key=${s}><i style=${{width:10,height:6,borderRadius:2,background:STG[s].c,display:"inline-block"}}></i>${STG[s].t}</span>`)}
+        <span><i style=${{width:10,height:10,borderRadius:2,background:"#3B6CF6",display:"inline-block"}}></i>처분 중 판매</span>
+        <span><i style=${{width:14,height:2,background:"#0F172A",display:"inline-block"}}></i>재고(개)</span>
+        ${d.pol && d.pol.scope ? [1,2,3].map(s => html`<span key=${"ps"+s}><i style=${{width:10,height:5,borderRadius:2,background:PSTG[s].c,display:"inline-block"}}></i>${PSTG[s].t}</span>`) : null}
+      </div>
+      <${Chart} d=${d} key=${d.name} />
+      <${PolicyNote} d=${d} />
+    </div>
+    <div className="stats">
+      <div className="st"><div className="l">출시 12주 주평균</div><div className="v">${d.first12 === null ? "—" : d.first12.toFixed(1) + "개"}</div><div className="s">${d.first12 === null ? (d.li >= 0 ? "12주 안 됨" : "출시 시점 자료 없음") : "전체 평균 " + AVG12.toFixed(1) + "개"}</div></div>
+      <div className="st"><div className="l">정상 기간 주평균</div><div className="v">${d.normQ.toFixed(1)}개</div><div className="s">${d.status.filter(s=>s===2).length}주</div></div>
+      <div className="st"><div className="l">발주종료 뒤 재고</div><div className="v">${d.ei < 0 ? "—" : d.oi >= 0 ? (d.oi - d.ei) + "주 만 소진" : d.stkNow + "개 남음"}</div><div className="s">${d.ei < 0 ? "발주 중" : d.oi >= 0 ? "판매종료 " + wkLabel(d.soldOut) : d.sinceEo + "주째 · " + man(d.stkNow*d.cost)}</div></div>
+      <div className="st"><div className="l">생애 순매출</div><div className="v">${man(d.lifeAmt)}</div><div className="s">${d.n}주 합계</div></div>
+    </div>
+    <div className="lower">
+      <div><div className="sec">경과</div><div className="tl">
+        ${evs.map((e,i)=>html`<div className="ev" key=${i}><span className="d" style=${{color:e.c, background:e.c}}></span><div><div className="t">${e.t}</div><div className="x">${e.x}</div></div><div className="w">${wkLabel(e.w)}</div></div>`)}
+      </div></div>
+      <div><div className="sec">처분 이력 <span style=${{fontWeight:500,color:"#94A3B8"}}>처분 화면과 같은 기준</span></div>
+        ${d.ds.length ? html`<div className="dl">${d.ds.map(s => { const dj = djudge(s); return html`<div className="drow" key=${s.seq}>
+          <span className="q">${s.seq}회차</span>
+          <div><div className="p">${wkLabel(s.start)} – ${s.rel ? wkLabel(s.rel) : "진행 중"}</div><div className="x">${s.onW}주 · ${s.preQ.toFixed(1)}→${s.onQ.toFixed(1)}개${s.preQ > 0 ? " · " + (s.onQ/s.preQ).toFixed(1) + "배" : ""}</div></div>
+          <div className="r"><${Pill} j=${dj} P=${DJ} /></div>
+        </div>`; })}
+        <a className="link" style=${{justifyContent:"center"}} href=${dispLink(d)}>처분 화면에서 ${d.ds.length > 1 ? "재처분 경과" : "처분 경과"} 보기 →</a></div>`
+        : html`<div className="empty">처분 이력 없음.${j === "종료 지연" ? html`<br/><b style=${{color:"#C2410C"}}>발주종료 ${d.sinceEo}주째 재고 ${d.stkNow}개 · 처분 등록 검토 대상</b>` : null}</div>`}
+      </div>
+    </div>
+  </section>`;
+}
+
+function PolicyNote({d}) {
+  const P0 = d.pol; if (!P0) return null;
+  const box = {marginTop:8, display:"flex", flexWrap:"wrap", gap:"6px 14px", alignItems:"center", fontSize:12.5, color:"#334155", background:"#F5F8FF", border:"1px solid #DCE6FD", borderRadius:12, padding:"9px 12px"};
+  if (!P0.scope) return html`<div style=${box}><b style=${{color:"#1D4ED8"}}>정책 적용</b><span>${P0.why}이라 정책 대상이 아닙니다.</span><a className="link" href="policy.html">정책 시뮬레이터 →</a></div>`;
+  const {p, dl} = P0, w = t => t >= 0 ? wkLabel(d.weeks[t]) : "—";
+  return html`<div style=${box}><b style=${{color:"#1D4ED8"}}>정책 적용 시</b>
+    <span>1단계 ${w(p.s1)}</span><span>2단계 ${w(p.s2)}</span><span>${p.term >= 0 ? "종료 심사 " + w(p.term) : p.sold >= 0 ? "소진 " + w(p.sold) : "기간 내 미정리"}</span>
+    <span style=${{color:"#64748B"}}>실제 첫 할인 ${w(dl.act)}${dl.lag != null ? " · 행동 지연 " + dl.lag + "주" + (dl.open ? " 이상" : "") : ""}</span>
+    <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>시뮬레이터에서 보기 →</a>
+    <span style=${{fontSize:11.5,color:"#94A3B8",flexBasis:"100%"}}>정책 값은 시뮬레이터에서 정한 값(가상 설정·반응 가정 포함)이며 실적이 아닙니다.</span></div>`;
+}
+
+function Criteria({lim}) {
+  const R = [["신상품 진행", "출시 12주 미만"], ["정리 완료", "발주종료 뒤 재고 0개로 판매종료"], ["종료 지연", "발주종료 " + lim + "주 이상 지났는데 재고 남음"], ["신상품 부진", "출시 12주 주평균이 전체 평균(" + AVG12.toFixed(1) + "개)의 40% 미만"], ["운영 중", "위 네 가지에 해당하지 않는 건"]];
+  return html`<section className="card crit">
+    <div><div className="h">판정 기준 <span style=${{fontWeight:500, color:"#94A3B8"}}>가상 설정값 · 위에서부터 차례로 적용</span></div>단계: 신상품(출시 12주) → 정상 → 발주종료(입고 끝) → 판매종료(재고 0). 처분은 단계 위에 겹쳐 표시하고, 처분 화면과 같은 상품·기준을 씁니다.</div>
+    ${R.map(([j, t]) => html`<div key=${j}><div className="h"><i style=${{background:J[j].dot}}></i>${j}</div>${t}</div>`)}
+  </section>`;
+}
+
+function hashItem() { const m = location.hash.match(/item=([^&]+)/); return m ? decodeURIComponent(m[1]) : null; }
+
+function App() {
+  const [lim, setLim] = useState(12);
+  const [flt, setFlt] = useState("전체");
+  const [q, setQ] = useState("");
+  const rows = useMemo(() => ITEMS.map(d => ({d, j: judge(d, lim)}))
+    .sort((a,b) => ORDER.indexOf(a.j) - ORDER.indexOf(b.j) || b.d.stkNow*b.d.cost - a.d.stkNow*a.d.cost), [lim]);
+  const [sel, setSel] = useState(() => { const h = hashItem(); const s = (h && ITEMS.find(d => d.name === h)) || ITEMS.find(d => d.pick) || ITEMS[0]; return s.name; });
+  const PER = 10;
+  const [pg, setPg] = useState(() => Math.max(0, Math.floor(rows.findIndex(r => r.d.name === sel) / PER)));
+  const cnt = j => rows.filter(r => r.j === j).length;
+  const shown = rows.filter(r => (flt === "전체" || r.j === flt) && (!q || r.d.name.includes(q) || r.d.cat.includes(q)));
+  const pages = Math.max(1, Math.ceil(shown.length / PER)), p = Math.min(pg, pages - 1), view = shown.slice(p*PER, p*PER + PER);
+  const cur = ITEMS.find(d => d.name === sel) || ITEMS[0];
+  const late = rows.filter(r => r.j === "종료 지연");
+  const done = rows.filter(r => r.j === "정리 완료" && r.d.li >= 0);
+  const withD = ITEMS.filter(d => d.ds.length), re = ITEMS.filter(d => d.ds.length > 1);
+  const total = rows.length;
+  return html`<div className="app">
+    <header className="top">
+      <div className="brand">
+        <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 14c3 0 3-9 6-9s3 6 6 6 2-3 4-3"/></svg></div>
+        <div><div className="crumb">SCM 재고관리 · 상품 진단</div><h1>상품 생애주기</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a href="policy.html">정책 시뮬레이터</a><a href="index.html">입력 확인</a><a className="on" href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a></nav>
+      </div>
+      <div className="topr">
+        <div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div>
+        <div className="rule"><label htmlFor="m">종료 지연 기준</label><input id="m" type="range" min="4" max="26" step="1" value=${lim} onChange=${e=>setLim(+e.target.value)} /><b>${lim}주</b></div>
+      </div>
+    </header>
+    <${Criteria} lim=${lim} />
+    <section className="kpis">
+      <div className="card kpi">
+        <div className="kl">상품 수</div>
+        <div className="kv">${total}<small>개</small></div>
+        <div className="dist">${ORDER.map(j => cnt(j) ? html`<div key=${j} style=${{flex:cnt(j), background:J[j].dot}}></div>` : null)}</div>
+        <div className="leg">${ORDER.map(j => html`<span key=${j}><i style=${{background:J[j].dot}}></i>${j} ${cnt(j)}</span>`)}</div>
+      </div>
+      <div className="card kpi"><div className="kl">종료 지연 남은 재고</div><div className="kv" style=${{color:J["종료 지연"].fg}}>${man(late.reduce((a,r)=>a+r.d.stkNow*r.d.cost,0))}</div><div className="ks">${late.length}개 · 처분 미등록 ${late.filter(r => !r.d.ongoing).length}개</div></div>
+      <div className="card kpi"><div className="kl">처분 이력 있는 상품</div><div className="kv">${withD.length}<small>/ ${total}</small></div><div className="ks">재처분 ${re.length}개 · 처분 화면과 연결</div></div>
+      <div className="card kpi"><div className="kl">출시~판매종료 평균</div><div className="kv">${done.length ? Math.round(avg(done.map(r => r.d.oi - r.d.li))) : "—"}<small>주</small></div><div className="ks">정리 완료 ${done.length}개 · 발주종료→소진 평균 ${done.length ? Math.round(avg(done.map(r => r.d.oi - r.d.ei))) : "—"}주</div></div>
+    </section>
+    <div className="main">
+      <section className="card">
+        <div className="listhead">
+          <div className="seg">${["전체", ...ORDER].map(f => html`<button key=${f} className=${flt===f?"on":""} onClick=${()=>{setFlt(f);setPg(0);}}>${f}<span className="n">${f==="전체"?total:cnt(f)}</span></button>`)}</div>
+          <input className="search" placeholder="상품·분류 검색" value=${q} onChange=${e=>{setQ(e.target.value);setPg(0);}} />
+        </div>
+        <div className="tw"><table>
+          <thead><tr><th style=${{paddingLeft:18}}>상품</th><th>지금 단계</th><th>출시</th><th className="num">정상 주평균</th><th>처분</th><th>추이</th><th className="num">남은 재고</th><th style=${{paddingRight:18}}>판정</th></tr></thead>
+          <tbody>${view.map(({d,j}) => { const s = STG[d.status[d.n-1]]; return html`<tr key=${d.name} className=${"r" + (d.name===sel?" sel":"")} onClick=${()=>setSel(d.name)}>
+            <td style=${{paddingLeft:18}}><div className="pn">${d.name}</div><div className="pk">${d.cat}</div></td>
+            <td><span className="stg"><i style=${{background:s.c}}></i>${s.t}${d.sinceEo !== null && d.oi < 0 ? html`<span style=${{color:"#94A3B8"}}>${" " + d.sinceEo + "주째"}</span>` : null}</span></td>
+            <td style=${{color:"#475569"}}>${d.launch ? wkLabel(d.launch) : html`<span style=${{color:"#94A3B8"}}>'25 이전</span>`}</td>
+            <td className="num">${d.normQ.toFixed(1)}</td>
+            <td>${d.ds.length ? html`<span className="dcnt">${d.ds.length}회${d.ongoing ? " · 진행" : ""}</span>` : html`<span style=${{color:"#CBD2DC"}}>—</span>`}</td>
+            <td><${Spark} d=${d} /></td>
+            <td className="num">${man(d.stkNow*d.cost)}</td>
+            <td style=${{paddingRight:18}}><${Pill} j=${j} /></td>
+          </tr>`; })}</tbody>
+        </table></div>
+        <div className="pager"><span>${shown.length ? (p*PER+1) + "–" + Math.min(shown.length, p*PER+PER) + " / " + shown.length + "개" : "해당 상품 없음"}</span><div><button disabled=${p===0} onClick=${()=>setPg(p-1)}>이전</button><button disabled=${p>=pages-1} onClick=${()=>setPg(p+1)}>다음</button></div></div>
+      </section>
+      <${Detail} key=${cur.name} d=${cur} lim=${lim} />
+    </div>
+    <div className="foot">${META.note || ""}</div>
+  </div>`;
+}
+const rootEl = document.getElementById("root");
+(window.LC_DATA ? Promise.resolve(window.LC_DATA) : fetch("lifecycle.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
+  .then(j => { META = j.meta || {}; ITEMS = prep(j.items || []); if (!ITEMS.length) throw new Error("empty");
+    const f = ITEMS.filter(d => d.first12 !== null).map(d => d.first12); AVG12 = avg(f);
+    ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
+  .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">lifecycle.json을 읽지 못했습니다. (' + e.message + ')</div>'; });
+</script>
+
+</body>
+</html>

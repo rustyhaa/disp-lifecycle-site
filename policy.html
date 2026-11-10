@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>처분 정책 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --ink:#0F172A; --ink2:#334155; --mute:#64748B; --faint:#94A3B8;
+  --line:#E7E9EE; --line2:#F1F3F6; --accent:#3B6CF6; --accent-ink:#1D4ED8; --accent-soft:#EEF3FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+.app{max-width:1560px;margin:0 auto;padding-block:18px 14px;padding-left:max(clamp(16px,2vw,32px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,2vw,32px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3B6CF6,#1E3A8A);display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(59,108,246,.6)}
+.crumb{font-size:12px;color:var(--mute);font-weight:500;letter-spacing:.02em}
+h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.topr{display:flex;align-items:center;gap:12px}
+.stamp{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.live{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 0 3px #D1FAE5}
+.rule{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px}
+.rule input[type=range]{width:140px;accent-color:var(--accent)}
+.rule b{min-width:42px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
+.kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.kl{font-size:13px;color:var(--mute);font-weight:500}
+.kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kv small{font-size:15px;font-weight:600;color:var(--mute);margin-left:3px}
+.ks{font-size:12px;color:var(--mute)}
+.dist{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:4px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
+.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.main{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px;align-items:start}
+.listhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2)}
+.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.seg .n{font-size:11px;color:var(--faint);font-weight:500}
+.search{height:34px;width:180px;border:1px solid var(--line);border-radius:9px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3 3'/%3E%3C/svg%3E") no-repeat 11px center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11.5px;font-weight:500;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+tr.r{cursor:pointer;transition:background .12s}
+tr.r:hover{background:#F8FAFC}
+tr.r.sel{background:var(--accent-soft)}
+tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.num{text-align:right}
+.pn{font-weight:600}
+.pk{font-size:11.5px;color:var(--mute);margin-top:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.arrow{color:var(--faint);margin:0 4px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600}
+.pill i{width:6px;height:6px;border-radius:50%}
+.mult{font-weight:600}
+.det{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dt{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dm{font-size:13px;color:var(--mute);margin-top:4px}
+.chartwrap{position:relative}
+.tip{position:absolute;pointer-events:none;background:#0F172A;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px -8px rgba(15,23,42,.5);white-space:nowrap;transform:translate(-50%,-100%)}
+.tip b{font-weight:600}
+.tip span{color:#94A3B8}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
+.st .l{font-size:12px;color:var(--mute)}
+.st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+.st .s{font-size:11.5px;color:var(--mute);margin-top:2px}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sec{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.tl{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding-bottom:7px;position:relative}
+.ev:not(:last-child):before{content:"";position:absolute;left:8px;top:16px;bottom:0;width:2px;background:var(--line2)}
+.ev .d{width:10px;height:10px;border-radius:50%;margin:4px 0 0 4px;border:2px solid #fff;box-shadow:0 0 0 1.5px currentColor}
+.ev .t{font-size:13px;font-weight:600}
+.ev .x{font-size:12px;color:var(--mute)}
+.ev .w{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.field label{font-size:12px;color:var(--mute)}
+.field input{height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;background:#fff}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.save{height:36px;width:100%;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.foot{font-size:12px;color:var(--faint);line-height:1.6}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;font-size:12.5px;color:var(--mute)}
+.pager div{display:flex;gap:6px}
+.pager button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer}
+.pager button:disabled{color:var(--faint);cursor:default;background:var(--line2)}
+.tw{overflow-x:auto}
+.tw table{min-width:640px}
+.save.ok{background:#047857}
+.save.bad{background:#B91C1C}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
+@media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
+.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
+.crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
+@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+</style>
+<style>
+.nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
+.nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
+.nav a.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.link{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
+.link:hover{background:#EAF0FF}
+.warnbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 16px;border-radius:12px;background:#FFFBEB;border:1px solid #F5E1A4;font-size:12.5px;color:#7A5300}
+.warnbar b{color:#5C3D00}
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:start}
+.panel{padding:16px 18px;display:flex;flex-direction:column;gap:12px;position:sticky;top:12px}
+.ph{display:flex;justify-content:space-between;align-items:center}
+.ph .t{font-size:15px;font-weight:700}
+.reset{height:28px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:var(--ink2)}
+.step{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;position:relative}
+.step .sh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+.step .no{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.step .rule-t{font-size:12.5px;color:var(--ink2);line-height:1.55}
+.step .rule-t b{color:var(--ink)}
+.sl{display:grid;grid-template-columns:1fr 64px;gap:2px 8px;align-items:center;font-size:12px;color:var(--mute)}
+.sl input{grid-column:1 / span 2;width:100%;accent-color:var(--accent)}
+.sl output{text-align:right;font-weight:600;color:var(--ink);font-size:12.5px}
+.assume{border:1px dashed #C4B5FD;background:#FAF7FF;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.assume .sl input{accent-color:#7C3AED}
+.why{font-size:11.5px;color:#6B5B95;line-height:1.5;margin-top:-2px}
+.atag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700;color:#6D28D9;background:#EDE7FE}
+.secw{display:flex;flex-direction:column;gap:16px}
+.sect{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.sect .hh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.sect .ht{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.sect .hs{font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.5}
+.num-o{font-size:11px;font-weight:700;color:#fff;background:var(--ink);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:2px}
+.diff{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.dc{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+.dc .l{font-size:12px;color:var(--mute)}
+.dc .v{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.dc .s{font-size:11.5px;color:var(--mute);line-height:1.45}
+.dc .abs{font-size:11px;color:var(--faint);border-top:1px dashed var(--line);padding-top:5px;margin-top:2px}
+.good{color:#047857}.bad{color:#B91C1C}.flat{color:var(--ink2)}
+.gantt{display:flex;flex-direction:column;gap:2px;font-size:12px}
+.gr{display:grid;grid-template-columns:86px minmax(0,1fr) 70px;gap:8px;align-items:center;padding:3px 4px;border-radius:8px;cursor:pointer}
+.gr:hover{background:#F8FAFC}
+.gr.sel{background:var(--accent-soft)}
+.gr .nm{font-weight:600;white-space:nowrap}
+.gr .nm small{display:block;font-weight:500;color:var(--faint);font-size:10.5px}
+.gr .rt{text-align:right;font-size:11.5px;color:var(--mute);white-space:nowrap}
+.glegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--mute)}
+.glegend i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.note{font-size:11.5px;color:var(--faint);line-height:1.6}
+@media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}.panel{position:static}.diff{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.diff{grid-template-columns:minmax(0,1fr)}.gr{grid-template-columns:64px minmax(0,1fr)}.gr .rt{display:none}.nav{overflow-x:auto;max-width:100%}}
+</style>
+</head>
+<body>
+<div id="root"><div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">데이터 불러오는 중…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="policy.js"></script>
+<script>
+let ITEMS = [], META = {};
+const {useState, useMemo, useRef} = React;
+const html = htm.bind(React.createElement);
+const M = window.DispPolicy, RG = M.RANGES;
+const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
+const manS = v => (v > 0 ? "+" : v < 0 ? "−" : "") + (Math.round(Math.abs(v)/1e4)).toLocaleString("ko-KR") + "만원";
+const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
+const fmt = (k, v) => (RG[k].step < 1 ? v.toFixed(1) : String(v)) + RG[k].unit;
+const STAGE_C = {0:"transparent", 1:"#93B4FB", 2:"#3B6CF6", 3:"#B91C1C"};
+const discC = d => !d ? "transparent" : d < 35 ? "#FDBA8C" : d < 55 ? "#F97316" : "#C2410C";
+
+function Slider({k, v, on}) {
+  const r = RG[k];
+  return html`<label className="sl"><span>${r.label}</span><output>${fmt(k, v)}</output>
+    <input type="range" min=${r.min} max=${r.max} step=${r.step} value=${v} onChange=${e => on(k, +e.target.value)} aria-label=${r.label} /></label>`;
+}
+
+function Panel({P, A, setP, setA, reset}) {
+  const sp = (k, v) => setP({...P, [k]: v}), sa = (k, v) => setA({...A, [k]: v});
+  return html`<aside className="card panel">
+    <div className="ph"><div className="t">정책 설계</div><button className="reset" onClick=${reset}>기본값으로</button></div>
+    <div className="note" style=${{marginTop:-6}}>단계형 할인 규칙(마크다운 래더). 값은 가상 설정이며 실제 사내 기준이 아닙니다.</div>
+    <div className="step"><div className="sh"><span className="no" style=${{background:"#93B4FB"}}>1</span>1단계 할인 진입</div>
+      <div className="rule-t">발주종료 뒤 남은 재고가 최근 판매 속도로 <b>${P.X}주 치</b>를 넘으면 <b>${P.d1}% 할인</b></div>
+      <${Slider} k="X" v=${P.X} on=${sp} /><${Slider} k="d1" v=${P.d1} on=${sp} /></div>
+    <div className="step"><div className="sh"><span className="no" style=${{background:"#3B6CF6"}}>2</span>무반응이면 한 단계 더</div>
+      <div className="rule-t"><b>${P.N}주</b> 지켜본 뒤 배수(1단계 주평균 ÷ 직전 주평균)가 <b>${P.Y.toFixed(1)}배 미만</b>이면 <b>${P.d2}% 할인</b></div>
+      <${Slider} k="N" v=${P.N} on=${sp} /><${Slider} k="Y" v=${P.Y} on=${sp} /><${Slider} k="d2" v=${P.d2} on=${sp} /></div>
+    <div className="step"><div className="sh"><span className="no" style=${{background:"#B91C1C"}}>3</span>종료 심사(기안)</div>
+      <div className="rule-t">1단계 시작 뒤 <b>${P.Z}주</b> 안에 다 팔리지 않으면 남은 재고를 종료 심사로 넘김</div>
+      <${Slider} k="Z" v=${P.Z} on=${sp} /></div>
+    <div className="assume">
+      <div className="sh" style=${{display:"flex",alignItems:"center",gap:8,fontSize:12.5,fontWeight:600}}><span className="atag">가정</span>반응 가정 · 손실 가정</div>
+      <${Slider} k="r30" v=${A.r30} on=${sa} />
+      <${Slider} k="r50" v=${A.r50} on=${sa} />
+      <div className="why">기본 1.3배·1.6배 근거: 가격 1% 인하에 판매 1% 증가(탄력성 1)로 보수적으로 잡고, 50%에서는 효과가 덜 늘어난다고 봄. 생성기 안의 값과 일부러 다르게 둠.</div>
+      <${Slider} k="loss" v=${A.loss} on=${sa} />
+      <div className="why">기본 60% 근거: 남은 재고 일부는 반품·재판매로 돌아온다고 보고 원가의 60%를 잃는다고 둠.</div>
+    </div>
+  </aside>`;
+}
+
+function Diff({T}) {
+  const cls = v => Math.abs(v) < 1 ? "flat" : v < 0 ? "good" : "bad";
+  const lossTxt = Math.abs(T.dTotal) < 5000 ? "거의 같음" : (T.dTotal < 0 ? manS(T.dTotal).slice(1) + " 적음" : manS(T.dTotal).slice(1) + " 많음");
+  return html`<div className="diff">
+    <div className="dc"><div className="l">손실 · 실제 대비</div><div className=${"v " + cls(T.dTotal)}>${lossTxt}</div>
+      <div className="s">할인액 + 남은 재고 처리 손실</div><div className="abs">가정에 기반한 추정 · 실제 ${man(T.aTotal)} · 정책 ${man(T.pTotal)}</div></div>
+    <div className="dc"><div className="l">재고 정리 · 실제 대비</div><div className=${"v " + cls(T.dClear)}>${Math.abs(T.dClear) < 0.5 ? "같음" : Math.abs(T.dClear).toFixed(1) + "주 " + (T.dClear < 0 ? "빨리" : "늦게")}</div>
+      <div className="s">발주종료 → 소진 또는 종료 심사까지 평균</div><div className="abs">실제 ${T.aClear.toFixed(1)}주(정리 ${T.aCleared}개) · 정책 ${T.pClear.toFixed(1)}주(정리 ${T.pCleared}개) · 미정리는 기간 끝까지로 셈</div></div>
+    <div className="dc"><div className="l">기간 끝 남은 재고 · 실제 대비</div><div className=${"v " + cls(T.dEndWon)}>${manS(T.dEndWon)}</div>
+      <div className="s">원가 기준 · 종료 심사로 넘긴 재고 ${man(T.termWon)}(${T.terms}개 상품)는 따로</div><div className="abs">실제 ${man(T.aEndWon)} · 정책 ${man(T.pEndWon)}</div></div>
+    <div className="dc"><div className="l">행동 지연 · 관측</div><div className="v flat">${T.lagN ? T.lagMean.toFixed(1) + "주" : "—"}</div>
+      <div className="s">정책 판정 시점 → 실제 첫 할인(가상 데이터상 경과) 평균</div><div className="abs">판정이 있었던 ${T.lagN}개 상품 · 할인하지 않은 상품은 기간 끝까지로 셈</div></div>
+  </div>`;
+}
+
+function Gantt({R, sel, setSel}) {
+  const rows = R.rows.filter(r => r.scope);
+  const w0 = Math.min(...rows.map(r => r.it.t0)), wd = rows[0].d.weeks, n = wd.length, span = n - w0;
+  const W = 600, x = t => (t - w0) / span * W;
+  const Bar = ({vals, col, y, h}) => vals.map((v, t) => t >= w0 && v ? html`<rect key=${t} x=${x(t)} y=${y} width=${W/span + 0.3} height=${h} fill=${col(v)}></rect>` : null);
+  return html`<div>
+    <div className="glegend" style=${{marginBottom:8}}>
+      <span><i style=${{background:"#FDBA8C"}}></i>실제 할인 ~30%</span><span><i style=${{background:"#F97316"}}></i>~50%</span><span><i style=${{background:"#C2410C"}}></i>그 이상</span>
+      <span><i style=${{background:"#93B4FB"}}></i>정책 1단계</span><span><i style=${{background:"#3B6CF6"}}></i>정책 2단계</span><span><i style=${{background:"#B91C1C"}}></i>종료 심사</span>
+      <span><i style=${{background:"#0F172A",width:8,borderRadius:4}}></i>소진</span>
+    </div>
+    <div className="gantt">${rows.map(r => { const {d, p, a} = r; return html`<div key=${d.name} className=${"gr" + (d.name === sel ? " sel" : "")} onClick=${() => setSel(d.name)}>
+      <div className="nm">${d.name}<small>${d.dkind || d.cat}</small></div>
+      <svg viewBox=${`0 0 ${W} 22`} width="100%" height="22" preserveAspectRatio="none" style=${{display:"block"}}>
+        <rect x="0" y="0" width=${W} height="22" fill="#F8FAFC"></rect>
+        <rect x=${x(r.it.t0)} y="0" width="1.5" height="22" fill="#F59E0B"></rect>
+        <${Bar} vals=${d.disc} col=${discC} y=${2} h=${8} />
+        <${Bar} vals=${p.stage} col=${s => STAGE_C[s]} y=${12} h=${8} />
+        ${a.sold >= 0 && html`<circle cx=${x(a.sold)} cy="6" r="3" fill="#0F172A"></circle>`}
+        ${p.sold >= 0 && html`<circle cx=${x(p.sold)} cy="16" r="3" fill="#0F172A"></circle>`}
+      </svg>
+      <div className="rt">${p.s1 >= 0 ? "1단계 " + wkLabel(d.weeks[p.s1]) : "정책상 할인 없음"}</div>
+    </div>`; })}</div>
+    <div className="note" style=${{marginTop:6}}>각 상품 위 줄 = 실제(가상 데이터상 경과), 아래 줄 = 정책 적용. 노란 선 = 발주종료. ${wkLabel(wd[w0])}–${wkLabel(wd[n-1])}. 발주종료 전 상품 ${R.T.out}개는 정책 대상이 아니어서 뺐습니다.</div>
+  </div>`;
+}
+
+function niceMax(v) { if (v <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v/p; return (m<=2?2:m<=5?5:10)*p; }
+
+// ① 대표 상품 워크스루: 같은 상품에 실제 경과와 정책을 겹쳐 메커니즘을 먼저 보여 준다
+function Walk({R, sel, setSel, P}) {
+  const rows = R.rows.filter(r => r.scope);
+  const r = rows.find(x => x.d.name === sel) || rows[0];
+  const {d, it, p, a, dl} = r, n = it.n, w0 = Math.max(0, it.t0 - 8), span = n - w0;
+  const W = 760, H = 270, L = 40, Rr = 44, T = 52, B = 30, cw = (W - L - Rr) / span;
+  const bx = t => L + (t - w0) * cw, cx = t => bx(t) + cw / 2;
+  const smx = niceMax(Math.max(1, ...d.sale.slice(w0), ...it.base.slice(w0).map(v => v * M.lift(P.d2, M.DEFAULT_ASSUME))));
+  const kmx = niceMax(Math.max(1, ...d.stock.slice(w0).filter(v => v != null), ...p.stock.slice(w0).filter(v => v != null)));
+  const ys = v => H - B - (H - B - T) * Math.max(0, v) / smx, yk = v => H - B - (H - B - T) * Math.max(0, v) / kmx;
+  const line = (arr, f) => { let pen = false; return arr.map((v, t) => { if (t < w0 || v == null) { pen = false; return ""; } const s = (pen ? "L" : "M") + cx(t).toFixed(1) + "," + f(v).toFixed(1); pen = true; return s; }).join(" "); };
+  const wk = t => t >= 0 ? wkLabel(d.weeks[t]) : "—";
+  const tag = (t, txt, col, y) => t >= 0 && html`<g><line x1=${bx(t)} x2=${bx(t)} y1=${T - 6} y2=${H - B} stroke=${col} strokeWidth="1.2" strokeDasharray="3 3"></line><text x=${bx(t) + 3} y=${y} fontSize="10.5" fill=${col} fontWeight="600">${txt}</text></g>`;
+  const actN = d.disp.length;
+  const story = [
+    `실제(가상 데이터상 경과): 발주종료 ${wk(it.t0)} 뒤 ${dl.act >= 0 ? (dl.act - it.t0) + "주 만에 첫 할인" : "할인 없음"}, 처분 ${actN}회, 기간 끝 재고 ${Math.round(a.end)}개.`,
+    `정책 적용: ${p.s1 >= 0 ? wk(p.s1) + " 1단계(" + P.d1 + "%)" : "1단계 조건 미충족"}${p.s2 >= 0 ? ", " + wk(p.s2) + " 2단계(" + P.d2 + "%) — 관찰 배수 " + p.mult.toFixed(2) + "배 < " + P.Y.toFixed(1) : p.mult != null ? ", 관찰 배수 " + p.mult.toFixed(2) + "배라 2단계 없음" : ""}${p.term >= 0 ? ", " + wk(p.term) + " 종료 심사로 재고 " + Math.round(p.termStock) + "개 넘김" : p.sold >= 0 ? ", " + wk(p.sold) + " 소진" : ""}.`,
+    `차이(가정에 기반한 추정): 손실 ${Math.abs(p.total - a.total) < 5000 ? "거의 같음" : manS(p.total - a.total)}, 정리 ${p.clear >= 0 ? wk(p.clear) : "기간 내 미정리"} vs ${a.clear >= 0 ? wk(a.clear) : "기간 내 미정리"}.`
+  ];
+  return html`<section className="card sect">
+    <div className="hh"><div><div className="ht"><span className="num-o">1</span>대표 상품 워크스루 · ${d.name}</div>
+      <div className="hs">한 상품에 실제 경과와 정책을 겹쳐, 규칙이 언제 무엇을 바꾸는지 먼저 봅니다. 표나 전환표에서 상품을 고르면 바뀝니다.</div></div>
+      <div style=${{display:"flex",gap:8,alignItems:"center"}}>
+        <select value=${d.name} onChange=${e => setSel(e.target.value)} style=${{height:32,border:"1px solid #E7E9EE",borderRadius:9,padding:"0 10px",fontSize:13,background:"#fff"}} aria-label="상품 선택">${rows.map(x => html`<option key=${x.d.name} value=${x.d.name}>${x.d.name} · ${x.d.dkind || x.d.cat}${x.d.disp.length > 1 ? " · 재처분" : ""}</option>`)}</select>
+        <a className="link" href=${"lifecycle.html#item=" + encodeURIComponent(d.name)}>생애주기 →</a></div></div>
+    <div className="chartwrap"><svg viewBox=${`0 0 ${W} ${H}`} width="100%" style=${{display:"block"}}>
+      <defs><pattern id="cz" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#94A3B8" strokeOpacity="0.35" strokeWidth="2"></line></pattern></defs>
+      <text x=${L - 6} y="14" fontSize="10.5" fill="#94A3B8" textAnchor="end">실제</text><text x=${L - 6} y="27" fontSize="10.5" fill="#94A3B8" textAnchor="end">정책</text>
+      ${d.disc.map((v, t) => t >= w0 && v ? html`<rect key=${"a" + t} x=${bx(t)} y="7" width=${cw + 0.3} height="9" fill=${discC(v)}></rect>` : null)}
+      ${p.stage.map((v, t) => t >= w0 && v ? html`<rect key=${"p" + t} x=${bx(t)} y="20" width=${cw + 0.3} height="9" fill=${STAGE_C[v]}></rect>` : null)}
+      ${it.cens.map((c, t) => t >= w0 && c ? html`<rect key=${"c" + t} x=${bx(t)} y=${T} width=${cw} height=${H - B - T} fill="url(#cz)"></rect>` : null)}
+      ${[0, 0.5, 1].map(f => html`<g key=${f}><line x1=${L} x2=${W - Rr} y1=${ys(smx * f)} y2=${ys(smx * f)} stroke=${f === 0 ? "#E2E8F0" : "#F1F3F6"}></line>
+        <text x=${L - 6} y=${ys(smx * f) + 4} fontSize="10" fill="#94A3B8" textAnchor="end">${Math.round(smx * f)}</text>
+        <text x=${W - Rr + 6} y=${yk(kmx * f) + 4} fontSize="10" fill="#94A3B8">${Math.round(kmx * f)}</text></g>`)}
+      <text x=${L - 6} y=${T - 8} fontSize="10" fill="#94A3B8" textAnchor="end">판매</text><text x=${W - Rr + 6} y=${T - 8} fontSize="10" fill="#94A3B8">재고</text>
+      ${d.sale.map((v, t) => t >= w0 && v ? html`<rect key=${"s" + t} x=${bx(t) + cw * 0.2} y=${ys(v)} width=${cw * 0.6} height=${H - B - ys(v)} fill="#CBD2DC" rx="1"></rect>` : null)}
+      <path d=${line(it.base, ys)} fill="none" stroke="#94A3B8" strokeWidth="1.2" strokeDasharray="2 3"></path>
+      <path d=${line(p.sale.map((v, t) => t >= it.t0 ? v : null), ys)} fill="none" stroke="#3B6CF6" strokeWidth="1.4"></path>
+      <path d=${line(d.stock, yk)} fill="none" stroke="#0F172A" strokeWidth="2"></path>
+      <path d=${line(p.stock.map((v, t) => t >= it.t0 - 1 ? (t === it.t0 - 1 ? it.s0 : v) : null), yk)} fill="none" stroke="#3B6CF6" strokeWidth="2.2"></path>
+      ${tag(it.t0, "발주종료", "#B7791F", T - 10)}
+      ${tag(dl.act, "실제 첫 할인", "#C2410C", T + 4)}
+      ${p.s1 >= 0 && tag(p.s1, "정책 1단계", "#2563EB", T + 18)}
+      ${p.term >= 0 && tag(p.term, "종료 심사", "#B91C1C", T + 32)}
+      ${[0, 0.25, 0.5, 0.75].map(f => { const t = w0 + Math.round(f * (span - 1)); return html`<text key=${f} x=${cx(t)} y=${H - B + 18} fontSize="10" fill="#94A3B8" textAnchor="middle">${wkLabel(d.weeks[t])}</text>`; })}
+      <text x=${W - Rr} y=${H - B + 18} fontSize="10" fill="#94A3B8" textAnchor="end">${wkLabel(d.weeks[n - 1])}</text>
+    </svg></div>
+    <div className="glegend">
+      <span><i style=${{background:"#0F172A",height:3}}></i>실제 재고</span><span><i style=${{background:"#3B6CF6",height:3}}></i>정책 재고·판매</span>
+      <span><i style=${{background:"#CBD2DC"}}></i>실제 판매</span><span><i style=${{background:"repeating-linear-gradient(90deg,#94A3B8 0 2px,transparent 2px 5px)",height:2}}></i>기본 수요(역산, 가정)</span>
+      <span><i style=${{background:"repeating-linear-gradient(45deg,#CBD5E1 0 2px,transparent 2px 4px)"}}></i>품절·자료 없음 주(역산 제외, 양옆 평균으로 메움)</span>
+    </div>
+    <div style=${{fontSize:13,lineHeight:1.7,color:"#334155",background:"#F8FAFC",border:"1px solid #F1F3F6",borderRadius:12,padding:"10px 14px"}}>${story.map((s, i) => html`<div key=${i}>${s}</div>`)}</div>
+  </section>`;
+}
+
+// ③ 민감도: 값 하나를 움직이며 실제 대비 차이가 어떻게 바뀌는지, 어디서 결론이 뒤집히는지
+const SENS_KEYS = ["X", "d1", "N", "Y", "d2", "Z", "r30", "r50", "loss"];
+const METRIC = {dTotal: {t: "손실 차이", f: v => manS(v), z: true}, dClear: {t: "정리 주수 차이", f: v => (v > 0 ? "+" : "") + v.toFixed(1) + "주", z: true}, terms: {t: "종료 심사 상품 수", f: v => v + "개", z: false}};
+function Sens({P, A}) {
+  const [key, setKey] = useState("loss"), [met, setMet] = useState("dTotal");
+  const pts = useMemo(() => M.sweep(ITEMS, P, A, key, M.steps(key)), [P, A, key]);
+  const cur = RG[key].assume ? A[key] : P[key];
+  const tor = useMemo(() => {
+    const base = M.runAll(ITEMS, P, A).T.dTotal;
+    return SENS_KEYS.map(k => { const [lo, hi] = M.sweep(ITEMS, P, A, k, [RG[k].min, RG[k].max]); return {k, lo: lo.dTotal, hi: hi.dTotal, base}; })
+      .sort((a, b) => Math.abs(b.hi - b.lo) - Math.abs(a.hi - a.lo));
+  }, [P, A]);
+  const W = 640, H = 230, L = 64, R = 16, T = 18, B = 34;
+  const xs = v => L + (v - RG[key].min) / (RG[key].max - RG[key].min) * (W - L - R);
+  const ys0 = pts.map(p => p[met]), lo = Math.min(0, ...ys0), hi = Math.max(0, ...ys0), pad = (hi - lo) * 0.08 || 1;
+  const ys = v => T + (hi + pad - v) / (hi - lo + 2 * pad) * (H - T - B);
+  const path = pts.map((p, i) => (i ? "L" : "M") + xs(p.v).toFixed(1) + "," + ys(p[met]).toFixed(1)).join(" ");
+  const cross = []; if (METRIC[met].z) for (let i = 1; i < pts.length; i++) { const a = pts[i - 1][met], b = pts[i][met]; if ((a < 0) !== (b < 0) && a !== b) cross.push(pts[i - 1].v + (pts[i].v - pts[i - 1].v) * (0 - a) / (b - a)); }
+  const tmax = Math.max(1, ...tor.flatMap(t => [Math.abs(t.lo - t.base), Math.abs(t.hi - t.base)]));
+  const top = tor[0];
+  return html`<section className="card sect">
+    <div className="hh"><div><div className="ht"><span className="num-o">3</span>민감도 · 무엇을 바꾸면 결론이 뒤집히나</div>
+      <div className="hs">값 하나만 움직이고 나머지는 지금 설정 그대로 둡니다. 선이 0을 지나는 곳이 "정책이 실제보다 낫다/못하다"가 바뀌는 지점입니다.</div></div></div>
+    <div className="seg" style=${{flexWrap:"wrap"}}>${SENS_KEYS.map(k => html`<button key=${k} className=${key === k ? "on" : ""} onClick=${() => setKey(k)}>${RG[k].label.split(":")[0].replace("할인 ", "").replace(" 판매 배율", " 배율")}${RG[k].assume ? html`<span className="atag" style=${{marginLeft:2}}>가정</span>` : null}</button>`)}</div>
+    <div className="seg" style=${{alignSelf:"flex-start"}}>${Object.keys(METRIC).map(m => html`<button key=${m} className=${met === m ? "on" : ""} onClick=${() => setMet(m)}>${METRIC[m].t}</button>`)}</div>
+    <svg viewBox=${`0 0 ${W} ${H}`} width="100%" style=${{display:"block"}}>
+      ${METRIC[met].z && html`<g><rect x=${L} y=${T} width=${W - L - R} height=${Math.max(0, ys(0) - T)} fill="#FEF2F2"></rect><rect x=${L} y=${ys(0)} width=${W - L - R} height=${Math.max(0, H - B - ys(0))} fill="#ECFDF5"></rect>
+        <line x1=${L} x2=${W - R} y1=${ys(0)} y2=${ys(0)} stroke="#64748B"></line>
+        <text x=${W - R - 4} y=${T + 12} fontSize="10.5" fill="#B91C1C" textAnchor="end">정책이 실제보다 ${met === "dTotal" ? "손실 큼" : "늦게 정리"}</text>
+        <text x=${W - R - 4} y=${H - B - 6} fontSize="10.5" fill="#047857" textAnchor="end">정책이 실제보다 ${met === "dTotal" ? "손실 적음" : "빨리 정리"}</text></g>`}
+      ${[lo, (lo + hi) / 2, hi].map((v, i) => html`<text key=${i} x=${L - 6} y=${ys(v) + 4} fontSize="10" fill="#94A3B8" textAnchor="end">${METRIC[met].f(met === "terms" ? Math.round(v) : v)}</text>`)}
+      <path d=${path} fill="none" stroke="#0F172A" strokeWidth="2"></path>
+      ${pts.map(p => html`<circle key=${p.v} cx=${xs(p.v)} cy=${ys(p[met])} r="2.5" fill="#0F172A"></circle>`)}
+      <line x1=${xs(cur)} x2=${xs(cur)} y1=${T} y2=${H - B} stroke="#3B6CF6" strokeWidth="1.5"></line>
+      <text x=${xs(cur) + 4} y=${T + 26} fontSize="10.5" fill="#1D4ED8" fontWeight="600">지금 ${fmt(key, cur)}</text>
+      ${cross.map((c, i) => html`<g key=${i}><circle cx=${xs(c)} cy=${ys(0)} r="5" fill="#fff" stroke="#B45309" strokeWidth="2"></circle><text x=${xs(c)} y=${ys(0) - 9} fontSize="10.5" fill="#B45309" textAnchor="middle" fontWeight="700">뒤집힘 ≈ ${RG[key].step < 1 ? c.toFixed(1) : Math.round(c)}${RG[key].unit}</text></g>`)}
+      <text x=${L} y=${H - 10} fontSize="10" fill="#94A3B8">${fmt(key, RG[key].min)}</text><text x=${W - R} y=${H - 10} fontSize="10" fill="#94A3B8" textAnchor="end">${fmt(key, RG[key].max)}</text>
+      <text x=${(L + W - R) / 2} y=${H - 10} fontSize="10.5" fill="#475569" textAnchor="middle">${RG[key].label}</text>
+    </svg>
+    <div className="note">${METRIC[met].z && !cross.length ? "이 범위에서는 결론이 뒤집히지 않습니다(선이 0을 지나지 않음). " : ""}시뮬레이션 안의 배수(2단계 조건)는 반응 가정에서 나온 값이고, 실제 할인 주의 기본 수요도 반응 가정으로 역산합니다. 그래서 반응 가정을 바꾸면 실제 쪽 기본 수요도 함께 움직입니다.</div>
+    <div>
+      <div className="sec" style=${{marginTop:4}}>값마다 영향 크기 · 손실 차이가 범위 양 끝에서 얼마나 달라지나</div>
+      <div style=${{display:"flex",flexDirection:"column",gap:4}}>${tor.map(t => { const c = 50, s = 46 / tmax, a = (t.lo - t.base) * s, b = (t.hi - t.base) * s; return html`<div key=${t.k} style=${{display:"grid",gridTemplateColumns:"170px 1fr 150px",gap:8,alignItems:"center",fontSize:12}}>
+        <span>${RG[t.k].label.split(":")[0]}${RG[t.k].assume ? html`<span className="atag" style=${{marginLeft:4}}>가정</span>` : null}</span>
+        <svg viewBox="0 0 100 12" width="100%" height="12" preserveAspectRatio="none"><line x1=${c} x2=${c} y1="0" y2="12" stroke="#CBD5E1"></line>
+          <rect x=${c + Math.min(0, a)} y="2" width=${Math.abs(a)} height="8" fill="#93B4FB"></rect><rect x=${c + Math.min(0, b)} y="2" width=${Math.abs(b)} height="8" fill="#1D4ED8" opacity="0.75"></rect></svg>
+        <span style=${{color:"#64748B",fontSize:11.5,textAlign:"right"}}>${manS(t.lo - t.base)} ~ ${manS(t.hi - t.base)}</span></div>`; })}</div>
+      <div className="note" style=${{marginTop:6}}>연한 막대 = 범위 최솟값, 진한 막대 = 최댓값(지금 설정 대비 손실 차이 변화). 지금 가장 크게 흔드는 값: <b>${RG[top.k].label}${RG[top.k].assume ? " (가정)" : ""}</b>.${RG[top.k].assume ? " 정책 손잡이보다 가정이 결론을 더 흔든다는 뜻이라, 이 가정을 실측으로 좁히기 전에는 정책 우열을 단정할 수 없습니다." : ""}</div>
+    </div>
+  </section>`;
+}
+
+// ④ 예외 리포트: 정책을 따랐으면 달라졌을 상품만
+const EXC = {
+  late:  {t: "늦은 할인", s: "정책 판정 뒤 " + M.TOL + "주 넘게 지나서야(또는 끝내) 첫 할인", c: "#C2410C"},
+  early: {t: "이른 할인", s: "정책 조건이 충족되기 전에 이미 할인", c: "#1D4ED8"},
+  term:  {t: "종료 심사 대상", s: "정책이면 종료 심사로 넘어갔을 상품(실제는 그때까지 미소진)", c: "#B91C1C"}
+};
+function Exc({R, setSel, P}) {
+  const [tab, setTab] = useState("late");
+  const rows = R.rows.filter(r => r.scope && r.ex.includes(tab));
+  const cnt = k => R.rows.filter(r => r.scope && r.ex.includes(k)).length;
+  const wk = (d, t) => t >= 0 ? wkLabel(d.weeks[t]) : "—";
+  const cost = rows.reduce((a, r) => a + (r.a.total - r.p.total), 0);
+  return html`<section className="card sect">
+    <div className="hh"><div><div className="ht"><span className="num-o">4</span>예외 리포트 · 정책이면 달라졌을 상품만</div>
+      <div className="hs">상품 전체가 아니라 예외만 봅니다. 판정 시점 = 정책 1단계 조건(남은 재고 ${P.X}주 치 초과)이 실제 경과에서 처음 충족된 주.</div></div></div>
+    <div className="seg" style=${{alignSelf:"flex-start",flexWrap:"wrap"}}>${Object.keys(EXC).map(k => html`<button key=${k} className=${tab === k ? "on" : ""} onClick=${() => setTab(k)}>${EXC[k].t}<span className="n">${cnt(k)}</span></button>`)}</div>
+    <div className="note" style=${{marginTop:-4}}>${EXC[tab].s}</div>
+    ${rows.length ? html`<div><div className="tw"><table>
+      <thead><tr><th>상품</th><th>판정 시점</th><th>실제 첫 할인</th><th className="num">행동 지연</th><th>정책 단계</th><th className="num">지연 비용 <span className="atag">추정</span></th><th></th></tr></thead>
+      <tbody>${rows.map(r => { const {d, p, a, dl} = r, gap = a.total - p.total; return html`<tr key=${d.name} className="r" onClick=${() => setSel(d.name)}>
+        <td><div className="pn">${d.name}</div><div className="pk">${d.dkind || d.cat}${d.disp.length > 1 ? " · 재처분 " + d.disp.length + "회" : ""}</div></td>
+        <td>${wk(d, dl.trig)}${dl.trig < 0 && dl.trigAny >= 0 ? html`<div className="pk">조건 충족 ${wk(d, dl.trigAny)}</div>` : null}</td>
+        <td>${wk(d, dl.act)}</td>
+        <td className="num">${dl.lag == null ? "—" : dl.open ? dl.lag + "주 이상" : dl.lag + "주"}</td>
+        <td style=${{fontSize:12,color:"#475569"}}>${p.s1 >= 0 ? "1단계 " + wk(d, p.s1) : "할인 없음"}${p.s2 >= 0 ? " · 2단계 " + wk(d, p.s2) : ""}${p.term >= 0 ? " · 종료 심사 " + wk(d, p.term) : ""}</td>
+        <td className="num" style=${{color: gap > 0 ? "#047857" : gap < 0 ? "#B91C1C" : "#475569"}}>${Math.abs(gap) < 5000 ? "≈0" : manS(gap)}</td>
+        <td><a className="link" onClick=${e => e.stopPropagation()} href=${"lifecycle.html#item=" + encodeURIComponent(d.name)}>생애</a></td>
+      </tr>`; })}</tbody></table></div>
+      <div className="note">지연 비용 = 실제 경과 손실 − 정책 적용 손실. 정책대로 했더라면 피했을 손실의 <b>가정에 기반한 추정</b>이며, 음수(빨강)는 정책 쪽 손실이 더 크다는 뜻입니다. 이 탭 합계 ${manS(cost)}. 행동 지연은 가상 데이터상 경과에서 관측한 값이고, 할인하지 않은 상품은 기간 끝까지로 셉니다.</div></div>`
+    : html`<div className="empty" style=${{fontSize:12.5,color:"#64748B",padding:12,border:"1px dashed #E7E9EE",borderRadius:12}}>지금 설정에서는 이 유형의 예외가 없습니다.</div>`}
+  </section>`;
+}
+
+function App() {
+  const init = useMemo(() => M.load(), []);
+  const [P, setP0] = useState(init.P), [A, setA0] = useState(init.A);
+  const setP = v => { setP0(v); M.save(v, A); }, setA = v => { setA0(v); M.save(P, v); };
+  const reset = () => { setP0({...M.DEFAULT_POLICY}); setA0({...M.DEFAULT_ASSUME}); M.save(M.DEFAULT_POLICY, M.DEFAULT_ASSUME); };
+  const R = useMemo(() => M.runAll(ITEMS, P, A), [P, A]);
+  const hm = location.hash.match(/item=([^&]+)/), hn = hm ? decodeURIComponent(hm[1]) : null;
+  const [sel, setSel] = useState(() => (hn && R.rows.find(r => r.scope && r.d.name === hn) ? hn : "상품 11"));
+  return html`<div className="app">
+    <header className="top">
+      <div className="brand">
+        <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h14M3 10h9M3 15h5"/><path d="M15 12l2 2-2 2"/></svg></div>
+        <div><div className="crumb">SCM 재고관리 · 처분 정책</div><h1>처분 정책 시뮬레이터</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="policy.html">정책 시뮬레이터</a><a href="index.html">입력 확인</a><a href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a></nav>
+      </div>
+      <div className="topr"><div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div></div>
+    </header>
+    <div className="warnbar"><b>상품을 하나씩 결정하는 화면이 아니라, 규칙을 바꿔 보고 결과가 어떻게 달라지는지 미리 보는 화면입니다.</b>
+      <span>가상 데이터 · 판매 반응은 가정 · 숫자는 실적이 아니라 실제 경과와의 차이를 보기 위한 추정 · <a href="story.html" style=${{color:"#7A5300",fontWeight:600}}>왜 이렇게 만들었나 →</a></span></div>
+    <div className="layout">
+      <${Panel} P=${P} A=${A} setP=${setP} setA=${setA} reset=${reset} />
+      <div className="secw">
+        <${Walk} R=${R} sel=${sel} setSel=${setSel} P=${P} />
+        <section className="card sect">
+          <div className="hh"><div><div className="ht"><span className="num-o">2</span>상품 ${R.T.n}개 요약 · 실제 경과와의 차이</div>
+            <div className="hs">같은 손실식을 실제 경과와 정책 적용에 똑같이 써서, 믿을 수 있는 것은 절대 금액이 아니라 차이의 방향과 크기입니다.</div></div></div>
+          <${Diff} T=${R.T} />
+          <${Gantt} R=${R} sel=${sel} setSel=${setSel} />
+        </section>
+        <${Sens} P=${P} A=${A} />
+        <${Exc} R=${R} setSel=${v => { setSel(v); window.scrollTo && window.scrollTo({top: 0, behavior: "smooth"}); }} P=${P} />
+      </div>
+    </div>
+    <div className="foot">${META.note || ""}</div>
+  </div>`;
+}
+const rootEl = document.getElementById("root");
+fetch("lifecycle.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(j => { META = j.meta || {}; ITEMS = j.items || []; if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
+  .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">lifecycle.json을 읽지 못했습니다. 페이지와 같은 위치에 있는지 확인하세요. (' + e.message + ')</div>'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>처분 반응 배수 확인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --ink:#0F172A; --ink2:#334155; --mute:#64748B; --faint:#94A3B8;
+  --line:#E7E9EE; --line2:#F1F3F6; --accent:#3B6CF6; --accent-ink:#1D4ED8; --accent-soft:#EEF3FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+.app{max-width:1560px;margin:0 auto;padding-block:18px 14px;padding-left:max(clamp(16px,2vw,32px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,2vw,32px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3B6CF6,#1E3A8A);display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(59,108,246,.6)}
+.crumb{font-size:12px;color:var(--mute);font-weight:500;letter-spacing:.02em}
+h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.topr{display:flex;align-items:center;gap:12px}
+.stamp{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.live{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 0 3px #D1FAE5}
+.rule{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px}
+.rule input[type=range]{width:140px;accent-color:var(--accent)}
+.rule b{min-width:42px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
+.kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.kl{font-size:13px;color:var(--mute);font-weight:500}
+.kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kv small{font-size:15px;font-weight:600;color:var(--mute);margin-left:3px}
+.ks{font-size:12px;color:var(--mute)}
+.dist{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:4px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
+.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.main{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px;align-items:start}
+.listhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2)}
+.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.seg .n{font-size:11px;color:var(--faint);font-weight:500}
+.search{height:34px;width:180px;border:1px solid var(--line);border-radius:9px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3 3'/%3E%3C/svg%3E") no-repeat 11px center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11.5px;font-weight:500;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+tr.r{cursor:pointer;transition:background .12s}
+tr.r:hover{background:#F8FAFC}
+tr.r.sel{background:var(--accent-soft)}
+tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.num{text-align:right}
+.pn{font-weight:600}
+.pk{font-size:11.5px;color:var(--mute);margin-top:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.arrow{color:var(--faint);margin:0 4px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600}
+.pill i{width:6px;height:6px;border-radius:50%}
+.mult{font-weight:600}
+.det{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dt{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dm{font-size:13px;color:var(--mute);margin-top:4px}
+.chartwrap{position:relative}
+.tip{position:absolute;pointer-events:none;background:#0F172A;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px -8px rgba(15,23,42,.5);white-space:nowrap;transform:translate(-50%,-100%)}
+.tip b{font-weight:600}
+.tip span{color:#94A3B8}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
+.st .l{font-size:12px;color:var(--mute)}
+.st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+.st .s{font-size:11.5px;color:var(--mute);margin-top:2px}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sec{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.tl{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding-bottom:7px;position:relative}
+.ev:not(:last-child):before{content:"";position:absolute;left:8px;top:16px;bottom:0;width:2px;background:var(--line2)}
+.ev .d{width:10px;height:10px;border-radius:50%;margin:4px 0 0 4px;border:2px solid #fff;box-shadow:0 0 0 1.5px currentColor}
+.ev .t{font-size:13px;font-weight:600}
+.ev .x{font-size:12px;color:var(--mute)}
+.ev .w{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.field label{font-size:12px;color:var(--mute)}
+.field input{height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;background:#fff}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.save{height:36px;width:100%;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.foot{font-size:12px;color:var(--faint);line-height:1.6}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;font-size:12.5px;color:var(--mute)}
+.pager div{display:flex;gap:6px}
+.pager button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer}
+.pager button:disabled{color:var(--faint);cursor:default;background:var(--line2)}
+.tw{overflow-x:auto}
+.tw table{min-width:640px}
+.save.ok{background:#047857}
+.save.bad{background:#B91C1C}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
+@media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
+.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
+.crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
+@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+</style>
+</style>
+</head>
+<body>
+<style>
+.nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
+.nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
+h1{white-space:nowrap}
+@media (max-width:560px){.nav{overflow-x:auto;max-width:100%;margin-left:0 !important}h1{white-space:normal}}
+.nav a.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.link{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap}
+.link:hover{background:#EAF0FF}
+.dh-r{display:flex;align-items:center;gap:8px}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 20px;border-radius:16px;background:linear-gradient(120deg,#0F172A,#1E3A8A);color:#fff;box-shadow:0 10px 28px -14px rgba(30,58,138,.7)}
+.cta .ct{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.cta .cs{font-size:12.5px;color:#C7D2FE;margin-top:4px;line-height:1.5}
+.cta a{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:11px;background:#fff;color:#1E3A8A;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap}
+.cta a:hover{background:#EEF3FF}
+.use{font-size:12.5px;color:var(--ink2);line-height:1.65;background:#F5F8FF;border:1px solid #DCE6FD;border-radius:12px;padding:10px 12px}
+</style>
+<div id="root"><div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">데이터 불러오는 중…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="policy.js"></script>
+<script>
+let ITEMS = [], META = {};
+const {useState, useMemo, useRef} = React;
+const html = htm.bind(React.createElement);
+const J = {
+  "반응":      {fg:"#1D4ED8", bg:"#EEF3FF", dot:"#3B6CF6"},
+  "무반응":    {fg:"#C2410C", bg:"#FFF1E8", dot:"#F26B2A"},
+  "장기미해제":{fg:"#8A5A00", bg:"#FBF3DE", dot:"#D49B1F"},
+  "보류":      {fg:"#475569", bg:"#F1F3F6", dot:"#A3ABB8"}
+};
+const ORDER = ["반응","무반응","장기미해제","보류"];
+const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
+const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
+const firstGE = (ws, w) => { if (!w) return -1; for (let i=0;i<ws.length;i++) if (ws[i] >= w) return i; return -1; };
+
+function prep(RAW) { return RAW.map((d, i) => {
+  const si0 = firstGE(d.weeks, d.start), si = si0 < 0 ? d.weeks.length : si0;
+  const ri0 = firstGE(d.weeks, d.rel);
+  const n = d.weeks.length;
+  let so = -1; if (d.stock[si] != null && d.stock[si] > 0) for (let k=si;k<n;k++) if (d.stock[k] !== null && d.stock[k] <= 0) { so = k; break; }
+  let di = -1; for (let k=si;k<n;k++) if (d.disc[k]) { di = k; break; }
+  return {...d, name: d.name || ("상품 " + String(i+1).padStart(2,"0")), si, ri: ri0 < 0 ? n : ri0, hasRel: ri0 >= 0, so, di, n, hs: (d.hist || []).map(h => { const a = firstGE(d.weeks, h.start), b = firstGE(d.weeks, h.end); return {...h, a: Math.max(0, a), b: b < 0 ? n : b}; })};
+}); }
+
+function judge(d, mult) {
+  if (d.onW < 4 || d.preQ < 0.5) return "보류";
+  if (!d.rel && d.onW >= 24) return "장기미해제";
+  const ls = d.stock.filter(v => v !== null).pop(); const sold = d.so >= 0 && ls !== undefined && ls <= 0;
+  if (d.onQ >= mult * d.preQ || sold) return "반응";
+  return "무반응";
+}
+
+function Pill({j}) {
+  const c = J[j];
+  return html`<span className="pill" style=${{color:c.fg, background:c.bg}}><i style=${{background:c.dot}}></i>${j}</span>`;
+}
+
+function Spark({d}) {
+  const W=120, H=30, n=d.n, mx=Math.max(1, ...d.sale);
+  const x = i => 1 + i*(W-2)/Math.max(1,n-1);
+  const y = v => H-2 - (H-6)*Math.max(0,v)/mx;
+  const pts = d.sale.map((v,i)=>[x(i),y(v)]);
+  const line = pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const area = line + ` L${x(n-1).toFixed(1)},${H-1} L1,${H-1} Z`;
+  return html`<svg width=${W} height=${H} viewBox=${`0 0 ${W} ${H}`}>
+    <rect x=${x(d.si)} y="0" width=${Math.max(0, x(Math.min(d.ri, n-1)) - x(d.si))} height=${H} fill="#3B6CF6" opacity="0.08" rx="2"></rect>
+    ${(d.hs || []).map((h, k) => html`<rect key=${k} x=${x(h.a)} y="0" width=${Math.max(0, x(Math.min(h.b, d.si)) - x(h.a))} height=${H} fill="#64748B" opacity="0.14" rx="2"></rect>`)}
+    <path d=${area} fill="#94A3B8" opacity="0.12"></path>
+    <path d=${line} fill="none" stroke="#64748B" strokeWidth="1.3" strokeLinejoin="round"></path>
+    <path d=${pts.slice(d.si, Math.min(d.ri, n-1)+1).map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")} fill="none" stroke="#3B6CF6" strokeWidth="1.8" strokeLinejoin="round"></path>
+  </svg>`;
+}
+
+function niceMax(v) { if (v <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v/p; return (m<=2?2:m<=5?5:10)*p; }
+
+function Chart({d}) {
+  const [hv, setHv] = useState(null);
+  const ref = useRef(null);
+  const W=680, H=232, L=44, R=48, T=40, B=34, n=d.n, cw=(W-L-R)/n;
+  const smx = niceMax(Math.max(1, ...d.sale)), kmx = niceMax(Math.max(1, ...d.stock));
+  const ys = v => H-B - (H-B-T)*Math.max(0,v)/smx;
+  const yk = v => H-B - (H-B-T)*Math.max(0,v)/kmx;
+  const cx = i => L + cw*(i+0.5);
+  const sx = L + cw*d.si, rx = L + cw*d.ri;
+  let pen = false; const sline = d.stock.map((v,i)=>{ if (v === null) { pen = false; return ""; } const s = (pen ? "L" : "M") + cx(i).toFixed(1) + "," + yk(v).toFixed(1); pen = true; return s; }).join(" ");
+  const sarea = d.stock.some(v => v === null) ? "" : sline +` L${cx(n-1).toFixed(1)},${H-B} L${cx(0).toFixed(1)},${H-B} Z`;
+  const step = Math.max(1, Math.round(n/7));
+  const ticks = []; for (let q=0;q<n;q+=step) ticks.push(q);
+  const move = e => {
+    const r = ref.current.getBoundingClientRect();
+    const px = (e.clientX - r.left) * W / r.width;
+    const i = Math.floor((px - L)/cw);
+    setHv(i >= 0 && i < n ? i : null);
+  };
+  const inH = i => (d.hs || []).some(h => i >= h.a && i < h.b);
+  const color = i => i < d.si ? (inH(i) ? "#8E9AAD" : "#CBD2DC") : (i < d.ri ? "#3B6CF6" : "#A9C0F8");
+  const onW = d.ri - d.si;
+  return html`<div className="chartwrap">
+    <svg ref=${ref} viewBox=${`0 0 ${W} ${H}`} width="100%" onMouseMove=${move} onMouseLeave=${()=>setHv(null)} style=${{display:"block"}}>
+      <defs>
+        <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#0F172A" stopOpacity="0.10"></stop><stop offset="1" stopColor="#0F172A" stopOpacity="0"></stop></linearGradient>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#64748B" opacity="0.05"></rect><line x1="0" y1="0" x2="0" y2="6" stroke="#64748B" strokeOpacity="0.2" strokeWidth="2"></line></pattern>
+      </defs>
+      <rect x=${sx} y=${T-14} width=${Math.max(0,rx-sx)} height=${H-B-T+14} fill="#3B6CF6" opacity="0.055"></rect>
+      ${[0,0.5,1].map(f => html`<g key=${f}>
+        <line x1=${L} x2=${W-R} y1=${ys(smx*f)} y2=${ys(smx*f)} stroke=${f===0?"#E2E8F0":"#F1F3F6"}></line>
+        <text x=${L-8} y=${ys(smx*f)+4} fontSize="10.5" fill="#94A3B8" textAnchor="end">${Math.round(smx*f)}</text>
+        <text x=${W-R+8} y=${yk(kmx*f)+4} fontSize="10.5" fill="#94A3B8">${Math.round(kmx*f)}</text>
+      </g>`)}
+      <text x=${L-8} y=${T-22} fontSize="10.5" fill="#94A3B8" textAnchor="end">판매</text>
+      <text x=${W-R+8} y=${T-22} fontSize="10.5" fill="#94A3B8">재고</text>
+      ${(d.hs || []).map((h, k) => html`<g key=${"h" + k}><rect x=${L + cw*h.a} y=${T-14} width=${Math.max(0, cw*(Math.min(h.b, d.si) - h.a))} height=${H-B-T+14} fill="url(#hatch)"></rect><text x=${L + cw*(h.a + Math.min(h.b, d.si))/2} y=${T-18} fontSize="11" fill="#475569" textAnchor="middle" fontWeight="600">${"이전 처분 · " + (Math.min(h.b, d.si) - h.a) + "주"}</text></g>`)}
+      ${(() => { const p0 = d.hs && d.hs.length ? Math.min(d.hs[d.hs.length-1].b, d.si) : 0; return d.si - p0 > 1 && html`<text x=${L + cw*(p0 + d.si)/2} y=${T-18} fontSize="11" fill="#94A3B8" textAnchor="middle" fontWeight="500">처분 전</text>`; })()}
+      <text x=${Math.min((sx+rx)/2, W-R-40)} y=${T-18} fontSize="11" fill="#1D4ED8" textAnchor="middle" fontWeight="600">${"처분 중 · " + onW + "주"}</text>
+      ${d.hasRel && d.ri < n-1 && html`<text x=${(rx+W-R)/2} y=${T-18} fontSize="11" fill="#6B8BE8" textAnchor="middle" fontWeight="500">해제 후</text>`}
+      ${d.sale.map((v,i)=>{ const h=Math.max(v>0?1.5:0, H-B-ys(v)); return html`<rect key=${i} x=${L+cw*i+cw*0.18} y=${H-B-h} width=${cw*0.64} height=${h} rx=${Math.min(2,cw*0.2)} fill=${color(i)} opacity=${hv===null||hv===i?1:0.55}></rect>`; })}
+      ${d.stock.map((v,i)=> v === null ? html`<rect key=${"g"+i} x=${L+cw*i} y=${T} width=${cw} height=${H-B-T} fill="#94A3B8" opacity="0.12"></rect>` : null)}
+      <path d=${sarea} fill="url(#sg)"></path>
+      <path d=${sline} fill="none" stroke="#0F172A" strokeWidth="1.8" strokeLinejoin="round"></path>
+      <line x1=${sx} x2=${sx} y1=${T-14} y2=${H-B} stroke="#3B6CF6" strokeWidth="1.5"></line>
+      ${d.hasRel && html`<line x1=${rx} x2=${rx} y1=${T-14} y2=${H-B} stroke="#3B6CF6" strokeWidth="1.5" strokeDasharray="3 3"></line>`}
+      ${d.di >= 0 && html`<g>
+        <line x1=${cx(d.di)} x2=${cx(d.di)} y1=${T} y2=${H-B} stroke="#F26B2A" strokeWidth="1" strokeDasharray="2 3"></line>
+        <rect x=${cx(d.di)-30} y=${T-2} width="60" height="20" rx="10" fill="#FFF1E8" stroke="#F8C4A5"></rect>
+        <text x=${cx(d.di)} y=${T+12} fontSize="11" fill="#C2410C" textAnchor="middle" fontWeight="600">${"할인 " + d.disc[d.di] + "%"}</text>
+      </g>`}
+      ${d.so >= 0 && html`<g>
+        <circle cx=${cx(d.so)} cy=${yk(0)} r="4.5" fill="#fff" stroke="#0F172A" strokeWidth="1.8"></circle>
+        <text x=${cx(d.so) + (d.so > n*0.8 ? -8 : 8)} y=${yk(0)-10} fontSize="11" fill="#0F172A" fontWeight="600" textAnchor=${d.so > n*0.8 ? "end" : "start"}>${"재고 소진 · " + (d.so - d.si) + "주"}</text>
+      </g>`}
+      ${ticks.map(q => html`<text key=${q} x=${cx(q)} y=${H-B+20} fontSize="10.5" fill="#94A3B8" textAnchor="middle">${wkLabel(d.weeks[q])}</text>`)}
+      ${hv !== null && html`<g>
+        <line x1=${cx(hv)} x2=${cx(hv)} y1=${T-14} y2=${H-B} stroke="#0F172A" strokeOpacity="0.25"></line>
+        ${d.stock[hv] !== null && html`<circle cx=${cx(hv)} cy=${yk(d.stock[hv])} r="3.5" fill="#0F172A"></circle>`}
+      </g>`}
+    </svg>
+    ${hv !== null && html`<div className="tip" style=${{left: (cx(hv)/W*100)+"%", top: (Math.min(ys(d.sale[hv]), yk(d.stock[hv]))/H*100 - 3)+"%"}}>
+      <b>${wkLabel(d.weeks[hv])}</b> <span>· ${hv < d.si ? "처분 전" : hv < d.ri ? "처분 중" : "해제 후"}</span><br/>
+      판매 <b>${d.sale[hv]}개</b> · ${d.stock[hv] === null ? "재고 자료 없음" : html`재고 <b>${d.stock[hv]}개</b>`}${d.disc[hv] ? html` · 할인 <b>${d.disc[hv]}%</b>` : null}
+    </div>`}
+  </div>`;
+}
+
+const PSET = window.DispPolicy ? window.DispPolicy.load() : null;
+function Detail({d, mult}) {
+  const j = judge(d, mult), m = d.preQ > 0 && j !== "보류" ? d.onQ / d.preQ : null;
+  const evs = (d.hist || []).map(h => ({t:"이전 처분", x:wkLabel(h.start) + " – " + wkLabel(h.end) + (h.relSrc === "AUTO" ? " · 자동해제" : ""), w:h.start, c:"#8E9AAD"})).concat([{t:d.nEv > 1 ? "재처분 시작 · " + d.nEv + "회차" : "처분 시작", x:d.kind, w:d.start, c:"#3B6CF6"}]);
+  if (d.di >= 0) evs.push({t:"첫 할인 " + d.disc[d.di] + "%", x:"시작 " + (d.di - d.si) + "주 뒤", w:d.weeks[d.di], c:"#F26B2A"});
+  if (d.so >= 0) evs.push({t:"재고 소진", x:"시작 " + (d.so - d.si) + "주 만", w:d.weeks[d.so], c:"#0F172A"});
+  if (d.rel) evs.push({t:d.relSrc === "AUTO" ? "자동 해제" : "해제", x:d.relSrc === "AUTO" ? "장기 무변동 시 자동 종료(가상 규칙)" : "해제 기록", w:d.rel, c:"#6B8BE8"});
+  else evs.push({t:"처분 진행 중", x:d.onW + "주째", w:"", c:"#D49B1F"});
+  return html`<section className="card det">
+    <div className="dh">
+      <div><div className="dt">${d.name}</div><div className="dm">${d.kind} · ${wkLabel(d.start)} 시작 · ${d.rel ? (d.relSrc==="AUTO"?"자동해제 ":"해제 ") + wkLabel(d.rel) : "처분 중"}</div></div>
+      <div className="dh-r"><a className="link" href=${"lifecycle.html#item=" + encodeURIComponent(d.name)}>이 상품 생애주기 보기 →</a><${Pill} j=${j} /></div>
+    </div>
+    <div>
+      <div className="legend" style=${{marginBottom:6}}>
+        <span><i style=${{width:10,height:10,borderRadius:2,background:"#CBD2DC",display:"inline-block"}}></i>처분 전 판매</span>
+        <span><i style=${{width:10,height:10,borderRadius:2,background:"#3B6CF6",display:"inline-block"}}></i>처분 중 판매</span>
+        <span><i style=${{width:10,height:10,borderRadius:2,background:"#A9C0F8",display:"inline-block"}}></i>해제 후 판매</span>
+        <span><i style=${{width:14,height:2,background:"#0F172A",display:"inline-block"}}></i>재고(개)</span>
+        ${d.stock.some(v => v === null) ? html`<span><i style=${{width:10,height:10,borderRadius:2,background:"#CBD2DC",display:"inline-block"}}></i>재고 자료 없음</span>` : null}
+      </div>
+      <${Chart} d=${d} key=${d.name} />
+    </div>
+    <div className="stats">
+      <div className="st"><div className="l">처분 전 주평균</div><div className="v">${d.preQ.toFixed(1)}개</div><div className="s">${d.hist && d.hist.length ? "직전 처분 뒤~시작 전" : "시작 전 판매"}</div></div>
+      <div className="st"><div className="l">처분 중 주평균</div><div className="v">${d.onQ.toFixed(1)}개</div><div className="s">${m == null ? "비교 불가" : m.toFixed(1) + "배"}</div></div>
+      <div className="st"><div className="l">처분 중 순매출</div><div className="v">${man(d.onAmt)}</div><div className="s">${d.onW}주 합계</div></div>
+      <div className="st"><div className="l">재고 금액</div><div className="v">${man(d.stkNowWon)}</div><div className="s">시작 ${man(d.stkStartWon)}</div></div>
+    </div>
+    <div className="lower">
+      <div><div className="sec">경과</div><div className="tl">
+        ${evs.map((e,i)=>html`<div className="ev" key=${i}><span className="d" style=${{color:e.c, background:e.c}}></span><div><div className="t">${e.t}</div><div className="x">${e.x}</div></div><div className="w">${wkLabel(e.w)}</div></div>`)}
+      </div></div>
+      <div><div className="sec">정책에서 쓰이는 곳</div>
+        <div className="use">이 화면의 배수(${m == null ? "비교 불가" : m.toFixed(1) + "배"})는 처분 정책 2단계 조건의 입력입니다. 시뮬레이터에서는 1단계 할인 뒤 관찰한 배수가 ${PSET ? PSET.P.Y.toFixed(1) : "Y"}배 미만이면 다음 단계로 넘어갑니다. 배수는 할인 효과와 시즌·전단·진열 효과를 구분하지 못하므로, 여기서는 판정이 아니라 입력값 확인으로만 봅니다.</div>
+        <a className="link" style=${{marginTop:8,justifyContent:"center",display:"flex"}} href=${"policy.html#item=" + encodeURIComponent(d.name)}>이 상품을 정책 시뮬레이터에서 보기 →</a>
+      </div>
+    </div>
+  </section>`;
+}
+
+function Criteria({mult}) {
+  const R = [["보류", "처분 중 4주 미만이거나 처분 전 주평균 0.5개 미만. 비교할 근거가 부족한 건"],
+             ["장기미해제", "해제 기록 없이 처분 중 24주 이상"],
+             ["반응", "배수 " + mult.toFixed(1) + "배 이상이거나, 처분 시작 때 있던 재고가 마지막 주 0개"],
+             ["무반응", "위 세 가지에 해당하지 않는 건"]];
+  return html`<section className="card crit">
+    <div><div className="h">배수 판정 기준 <span style=${{fontWeight:500, color:"#94A3B8"}}>가상 설정값 · 위에서부터 차례로 적용</span></div>배수 = 처분 중 주평균 판매 ÷ 처분 전 주평균 판매. 처분 전은 직전 처분이 끝난 뒤(없으면 데이터 시작)부터 이번 시작 전까지, 처분 중은 시작부터 해제나 다음 처분 시작 전까지입니다. 이 배수가 정책 2단계 조건의 입력이 됩니다.</div>
+    ${R.map(([j, t]) => html`<div key=${j}><div className="h"><i style=${{background:J[j].dot}}></i>${j}</div>${t}</div>`)}
+  </section>`;
+}
+
+function App() {
+  const [mult, setMult] = useState(1.5);
+  const [flt, setFlt] = useState("전체");
+  const [q, setQ] = useState("");
+  const rows = useMemo(() => ITEMS.map(d => ({d, j: judge(d, mult)}))
+    .sort((a,b) => ORDER.indexOf(a.j) - ORDER.indexOf(b.j) || b.d.stkStartWon - a.d.stkStartWon), [mult]);
+  const [sel, setSel] = useState(() => { const hm = location.hash.match(/item=([^&]+)/), hn = hm ? decodeURIComponent(hm[1]) : null; const s = (hn && ITEMS.find(d => d.name === hn)) || ITEMS.find(d => d.pick) || ITEMS.find(d => d.so >= 0 && d.di >= 0 && d.hasRel) || ITEMS[0]; return s.name; });
+  const [pg, setPg] = useState(() => Math.max(0, Math.floor(rows.findIndex(r => r.d.name === sel) / 10)));
+  const cnt = j => rows.filter(r => r.j === j).length;
+  const shown = rows.filter(r => (flt === "전체" || r.j === flt) && (!q || r.d.name.includes(q) || r.d.kind.includes(q)));
+  const PER = 10, pages = Math.max(1, Math.ceil(shown.length / PER)), p = Math.min(pg, pages - 1), view = shown.slice(p*PER, p*PER + PER);
+  const cur = ITEMS.find(d => d.name === sel) || ITEMS[0];
+  const noresp = rows.filter(r => r.j === "무반응");
+  const total = rows.length;
+  return html`<div className="app">
+    <header className="top">
+      <div className="brand">
+        <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 15 L7 9 L11 12 L18 4"/><path d="M13 4h5v5"/></svg></div>
+        <div><div className="crumb">SCM 재고관리 · 정책 입력 확인</div><h1>처분 반응 배수 확인</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a href="policy.html">정책 시뮬레이터</a><a className="on" href="index.html">입력 확인</a><a href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a></nav>
+      </div>
+      <div className="topr">
+        <div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} · 정적 시연(갱신 없음)</div>
+        <div className="rule"><label htmlFor="m">반응 기준</label><input id="m" type="range" min="1" max="3" step="0.1" value=${mult} onChange=${e=>setMult(+e.target.value)} /><b>${mult.toFixed(1)}배</b></div>
+      </div>
+    </header>
+    <section className="cta"><div><div className="ct">이 화면은 정책의 입력값(배수)을 확인하는 곳입니다</div>
+      <div className="cs">상품을 하나씩 판정하는 대신, 할인 규칙을 바꿔 30개 상품에 어떤 차이가 나는지 미리 보세요. 가상 데이터 · 반응은 가정.</div></div>
+      <a href="policy.html">처분 정책 시뮬레이터 열기 →</a></section>
+    <${Criteria} mult=${mult} />
+
+    <section className="kpis">
+      <div className="card kpi">
+        <div className="kl">처분 건수</div>
+        <div className="kv">${total}<small>건</small></div>
+        <div className="dist">${ORDER.map(j => cnt(j) ? html`<div key=${j} style=${{flex:cnt(j), background:J[j].dot}}></div>` : null)}</div>
+        <div className="leg">${ORDER.map(j => html`<span key=${j}><i style=${{background:J[j].dot}}></i>${j} ${cnt(j)}</span>`)}</div>
+      </div>
+      <div className="card kpi"><div className="kl">반응률</div><div className="kv" style=${{color:J["반응"].fg}}>${Math.round(cnt("반응")/Math.max(1,total-cnt("보류"))*100)}<small>%</small></div><div className="ks">보류 제외 · 기준 ${mult.toFixed(1)}배 또는 재고 소진</div></div>
+      <div className="card kpi"><div className="kl">무반응 남은 재고</div><div className="kv" style=${{color:J["무반응"].fg}}>${man(noresp.reduce((a,r)=>a+r.d.stkNowWon,0))}</div><div className="ks">${noresp.length}건 · 처분 방식 재검토 대상</div></div>
+      <div className="card kpi"><div className="kl">처분 중 순매출</div><div className="kv">${man(rows.reduce((a,r)=>a+r.d.onAmt,0))}</div><div className="ks">시작 시점 재고 ${man(rows.reduce((a,r)=>a+r.d.stkStartWon,0))}</div></div>
+    </section>
+
+    <div className="main">
+      <section className="card">
+        <div className="listhead">
+          <div className="seg">${["전체", ...ORDER].map(f => html`<button key=${f} className=${flt===f?"on":""} onClick=${()=>{setFlt(f);setPg(0);}}>${f}<span className="n">${f==="전체"?total:cnt(f)}</span></button>`)}</div>
+          <input className="search" placeholder="상품·유형 검색" value=${q} onChange=${e=>{setQ(e.target.value);setPg(0);}} />
+        </div>
+        <div className="tw"><table>
+          <thead><tr><th style=${{paddingLeft:18}}>상품</th><th>기간</th><th className="num">주평균 판매</th><th className="num">배수</th><th>추이</th><th className="num">시작 재고</th><th style=${{paddingRight:18}}>판정</th></tr></thead>
+          <tbody>${view.map(({d,j}) => { const m = d.preQ > 0 && j !== "보류" ? d.onQ/d.preQ : null; return html`<tr key=${d.name} className=${"r" + (d.name===sel?" sel":"")} onClick=${()=>setSel(d.name)}>
+            <td style=${{paddingLeft:18}}><div className="pn">${d.name}${d.nEv > 1 ? html`<span className="tag">재처분 ${d.nEv}회차</span>` : null}</div><div className="pk">${d.kind}</div></td>
+            <td style=${{color:"#475569"}}>${wkLabel(d.start)}<span className="arrow">→</span>${d.rel ? wkLabel(d.rel) : html`<span style=${{color:"#94A3B8"}}>진행 중</span>`}</td>
+            <td className="num"><span style=${{color:"#94A3B8"}}>${d.preQ.toFixed(1)}</span><span className="arrow">→</span><b style=${{fontWeight:600}}>${d.onQ.toFixed(1)}</b></td>
+            <td className="num mult" style=${{color: m == null ? "#CBD2DC" : m >= mult ? J["반응"].fg : "#334155"}}>${m == null ? "—" : m.toFixed(1) + "×"}${j === "반응" && m != null && m < mult ? html`<div style=${{fontSize:11,fontWeight:500,color:"#94A3B8"}}>재고 소진</div>` : null}</td>
+            <td><${Spark} d=${d} /></td>
+            <td className="num">${man(d.stkStartWon)}</td>
+            <td style=${{paddingRight:18}}><${Pill} j=${j} /></td>
+          </tr>`; })}</tbody>
+        </table></div>
+        <div className="pager"><span>${shown.length ? (p*PER+1) + "–" + Math.min(shown.length, p*PER+PER) + " / " + shown.length + "건" : "해당 건 없음"}</span><div><button disabled=${p===0} onClick=${()=>setPg(p-1)}>이전</button><button disabled=${p>=pages-1} onClick=${()=>setPg(p+1)}>다음</button></div></div>
+      </section>
+      <${Detail} key=${cur.name} d=${cur} mult=${mult} />
+    </div>
+    <div className="foot">${META.note || ""}</div>
+  </div>`;
+}
+const rootEl = document.getElementById("root");
+(window.DISP_DATA ? Promise.resolve(window.DISP_DATA) : fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
+  .then(j => { META = j.meta || {}; ITEMS = prep(j.items || []); if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
+  .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">data.json을 읽지 못했습니다. 페이지와 같은 위치에 data.json이 있는지 확인하세요. (' + e.message + ')</div>'; });
+</script>
+</body>
+</html>
