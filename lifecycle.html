@@ -139,6 +139,7 @@ h1{white-space:nowrap}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
 <script src="policy.js"></script>
+<script src="source.js"></script>
 <script>
 let ITEMS = [], META = {}, AVG12 = 0;
 const {useState, useMemo, useRef} = React;
@@ -162,6 +163,9 @@ const dispLink = d => "index.html#item=" + encodeURIComponent(d.name);
 // 정책 시뮬레이터에서 정한 값(브라우저 저장, 없거나 막히면 기본값)으로 상품마다 정책 단계 전환 시점을 계산해 시간축에 얹는다
 const PM = window.DispPolicy || null, PSET = PM ? PM.load() : null;
 const PSTG = {1:{t:"정책 1단계", c:"#93B4FB"}, 2:{t:"정책 2단계", c:"#3B6CF6"}, 3:{t:"종료 심사", c:"#B91C1C"}};
+// 재고 출처(source.js): 입고 추정과 발주종료 잔고 분해. 기준값은 가상 설정, FIFO는 가정
+const SM = window.DispSource || null;
+const SRCC = {open:"#94A3B8", init:"#8B5CF6", add:"#10B981", pre:"#EA580C", after:"#CBD2DC"};
 function policyOf(d) { if (!PM) return null; const it = PM.prepItem(d, PSET.A); if (!it.scope) return {scope:false, why:it.why}; return {scope:true, it, p:PM.simulate(it, PSET.P, PSET.A), dl:PM.delay(it, PSET.P)}; }
 
 function prep(RAW, end) { return RAW.map(d => {
@@ -204,7 +208,7 @@ function Spark({d}) {
 }
 function niceMax(v) { if (v <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v/p; return (m<=2?2:m<=5?5:10)*p; }
 
-function Chart({d}) {
+function Chart({d, sr}) {
   const [hv, setHv] = useState(null);
   const ref = useRef(null);
   const W=680, H=236, L=44, R=48, T=62, B=34, n=d.n, cw=(W-L-R)/n;
@@ -244,6 +248,8 @@ function Chart({d}) {
       ${d.sale.map((v,i)=>{ const h=Math.max(v>0?1.5:0, H-B-ys(v)); return html`<rect key=${i} x=${bx(i)+cw*0.15} y=${H-B-h} width=${cw*0.7} height=${h} rx=${Math.min(1.5,cw*0.2)} fill=${inD(i) ? "#3B6CF6" : d.status[i] === 1 ? "#B9A6F5" : d.status[i] === 3 ? "#E3B65A" : "#B4BDCA"} opacity=${hv===null||hv===i?1:0.55}></rect>`; })}
       <path d=${sline + ` L${cx(n-1).toFixed(1)},${H-B} L${cx(0).toFixed(1)},${H-B} Z`} fill="url(#sg)"></path>
       <path d=${sline} fill="none" stroke="#0F172A" strokeWidth="1.6" strokeLinejoin="round"></path>
+      ${sr && sr.inf.gap.map((g,i) => g ? html`<rect key=${"gp"+i} x=${bx(i)} y=${T} width=${cw} height=${H-B-T} fill="#F59E0B" opacity="0.12"></rect>` : null)}
+      ${sr && (() => { const mq = Math.max(1, ...sr.inf.events.map(e => e.q)); return sr.inf.events.map((e,k) => html`<circle key=${"in"+k} cx=${cx(e.t)} cy=${yk(d.stock[e.t] == null ? 0 : d.stock[e.t])} r=${2.5 + 8*Math.sqrt(e.q/mq)} fill=${SRCC[e.type]} fillOpacity="0.55" stroke=${SRCC[e.type]} strokeWidth="1.2"><title>${wkLabel(d.weeks[e.t]) + " " + SM.LABEL[e.type] + " " + Math.round(e.q) + "개(추정)"}</title></circle>`); })()}
       ${d.oi >= 0 && html`<g><circle cx=${cx(d.oi)} cy=${yk(0)} r="4.5" fill="#fff" stroke="#0F172A" strokeWidth="1.8"></circle>
         <text x=${cx(d.oi) + (d.oi > n*0.75 ? -8 : 8)} y=${yk(0)-10} fontSize="11" fill="#0F172A" fontWeight="600" textAnchor=${d.oi > n*0.75 ? "end" : "start"}>재고 소진</text></g>`}
       ${ticks.map(q => html`<text key=${q} x=${cx(q)} y=${H-B+20} fontSize="10.5" fill="#94A3B8" textAnchor="middle">${wkLabel(d.weeks[q])}</text>`)}
@@ -256,7 +262,7 @@ function Chart({d}) {
   </div>`;
 }
 
-function Detail({d, lim}) {
+function Detail({d, lim, sr, fifo}) {
   const j = judge(d, lim);
   const now = STG[d.status[d.n-1]].t;
   const evs = [{t:"출시", x:d.launch ? d.cat : "데이터 시작 전 출시", w:d.launch || d.weeks[0], c:"#8B5CF6"}];
@@ -274,10 +280,12 @@ function Detail({d, lim}) {
         ${[1,2,3,4].map(s => html`<span key=${s}><i style=${{width:10,height:6,borderRadius:2,background:STG[s].c,display:"inline-block"}}></i>${STG[s].t}</span>`)}
         <span><i style=${{width:10,height:10,borderRadius:2,background:"#3B6CF6",display:"inline-block"}}></i>처분 중 판매</span>
         <span><i style=${{width:14,height:2,background:"#0F172A",display:"inline-block"}}></i>재고(개)</span>
+        ${sr ? ["init","open","add","pre"].map(s => html`<span key=${"sc"+s}><i style=${{width:9,height:9,borderRadius:5,background:SRCC[s],opacity:.7,display:"inline-block"}}></i>${SM.LABEL[s]}</span>`) : null}
         ${d.pol && d.pol.scope ? [1,2,3].map(s => html`<span key=${"ps"+s}><i style=${{width:10,height:5,borderRadius:2,background:PSTG[s].c,display:"inline-block"}}></i>${PSTG[s].t}</span>`) : null}
       </div>
-      <${Chart} d=${d} key=${d.name} />
+      <${Chart} d=${d} sr=${sr} key=${d.name} />
       <${PolicyNote} d=${d} />
+      <${SourceNote} d=${d} sr=${sr} fifo=${fifo} />
     </div>
     <div className="stats">
       <div className="st"><div className="l">출시 12주 주평균</div><div className="v">${d.first12 === null ? "—" : d.first12.toFixed(1) + "개"}</div><div className="s">${d.first12 === null ? (d.li >= 0 ? "12주 안 됨" : "출시 시점 자료 없음") : "전체 평균 " + AVG12.toFixed(1) + "개"}</div></div>
@@ -314,6 +322,25 @@ function PolicyNote({d}) {
     <span style=${{fontSize:11.5,color:"#94A3B8",flexBasis:"100%"}}>정책 값은 시뮬레이터에서 정한 값(가상 설정·반응 가정 포함)이며 실적이 아닙니다.</span></div>`;
 }
 
+function SourceNote({d, sr, fifo}) {
+  if (!sr) return null;
+  const box = {marginTop:8, display:"flex", flexDirection:"column", gap:6, fontSize:12.5, color:"#334155", background:"#FFF7ED", border:"1px solid #FBD9B8", borderRadius:12, padding:"10px 12px"};
+  const head = html`<b style=${{color:"#C2410C"}}>재고 출처 <span style=${{fontWeight:500,color:"#9A6B4A"}}>· 입고는 재고·판매로 역산한 추정, ${fifo ? "오래된 입고부터 팔린다(FIFO)" : "판매가 모든 입고분에서 비율대로 빠진다(평균 소진)"}는 가정</span></b>`;
+  if (sr.inf.eo < 0) return html`<div style=${box}>${head}<span>발주 중이라 발주종료 잔고가 아직 없습니다. 입고 ${sr.inf.events.length}회(추정)는 차트 원으로 표시.</span></div>`;
+  if (sr.inf.gapBeforeEo) return html`<div style=${box}>${head}<span>발주종료 전에 재고 자료가 없는 주가 있어 추정 불가 구간이 생깁니다. 출처를 나누지 않았습니다(차트의 노란 구간).</span></div>`;
+  const x = fifo ? sr.fifo : sr.avg, y = fifo ? sr.avg : sr.fifo, tot = SM.SRC.reduce((a,s) => a + x.atEo[s], 0);
+  const parts = SM.SRC.filter(s => x.atEo[s] > 0.05);
+  const f = x.fate.pre, preQ = sr.inf.events.filter(e => e.type === "pre").reduce((a,e) => a + e.q, 0);
+  const pct = v => tot ? Math.round(v/tot*100) + "%" : "—";
+  return html`<div style=${box}>${head}
+    <div>발주종료(${wkLabel(d.eo)}) 때 남은 재고 <b>${Math.round(tot)}개</b>의 출처</div>
+    <div style=${{display:"flex",height:14,borderRadius:7,overflow:"hidden",background:"#F1F3F6"}}>${parts.map(s => html`<div key=${s} title=${SM.LABEL[s]} style=${{flex:x.atEo[s], background:SRCC[s]}}></div>`)}</div>
+    <div style=${{display:"flex",flexWrap:"wrap",gap:"2px 14px"}}>${parts.map(s => html`<span key=${s}><i style=${{display:"inline-block",width:8,height:8,borderRadius:2,background:SRCC[s],marginRight:5}}></i>${SM.LABEL[s]} ${Math.round(x.atEo[s])}개 · ${pct(x.atEo[s])}</span>`)}</div>
+    ${preQ > 0 && sr.sim ? html`<div>종료 직전 입고 ${Math.round(preQ)}개는 (정책 시뮬레이터 경로에서) 정상가 판매 ${Math.round(f.full)}개 · 할인 판매 ${Math.round(f.disc)}개 · 남음 ${Math.round(f.left)}개로 끝납니다. 처분 손실 추정 ${man(f.md + f.resid)}.</div>` : preQ > 0 ? null : html`<div>지금 기준(가상 설정)에서는 종료 직전 큰 입고가 없습니다.</div>`}
+    <div style=${{fontSize:11.5,color:"#9A6B4A"}}>${fifo ? "평균 소진으로 가정하면" : "FIFO로 가정하면"} 종료 직전 입고분 비중 ${pct(x.atEo.pre)} → ${pct(y.atEo.pre)}.</div>
+  </div>`;
+}
+
 function Criteria({lim}) {
   const R = [["신상품 진행", "출시 12주 미만"], ["정리 완료", "발주종료 뒤 재고 0개로 판매종료"], ["종료 지연", "발주종료 " + lim + "주 이상 지났는데 재고 남음"], ["신상품 부진", "출시 12주 주평균이 전체 평균(" + AVG12.toFixed(1) + "개)의 40% 미만"], ["운영 중", "위 네 가지에 해당하지 않는 건"]];
   return html`<section className="card crit">
@@ -337,6 +364,9 @@ function App() {
   const shown = rows.filter(r => (flt === "전체" || r.j === flt) && (!q || r.d.name.includes(q) || r.d.cat.includes(q)));
   const pages = Math.max(1, Math.ceil(shown.length / PER)), p = Math.min(pg, pages - 1), view = shown.slice(p*PER, p*PER + PER);
   const cur = ITEMS.find(d => d.name === sel) || ITEMS[0];
+  const [sset, setSset] = useState(() => SM ? {...SM.DEFAULT} : null), [fifo, setFifo] = useState(true);
+  const SR = useMemo(() => SM ? SM.runAll(ITEMS, sset, PM, PSET && PSET.P, PSET && PSET.A) : null, [sset]);
+  const srOf = d => SR ? SR.rows.find(r => r.d.name === d.name) : null;
   const late = rows.filter(r => r.j === "종료 지연");
   const done = rows.filter(r => r.j === "정리 완료" && r.d.li >= 0);
   const withD = ITEMS.filter(d => d.ds.length), re = ITEMS.filter(d => d.ds.length > 1);
@@ -386,7 +416,7 @@ function App() {
         </table></div>
         <div className="pager"><span>${shown.length ? (p*PER+1) + "–" + Math.min(shown.length, p*PER+PER) + " / " + shown.length + "개" : "해당 상품 없음"}</span><div><button disabled=${p===0} onClick=${()=>setPg(p-1)}>이전</button><button disabled=${p>=pages-1} onClick=${()=>setPg(p+1)}>다음</button></div></div>
       </section>
-      <${Detail} key=${cur.name} d=${cur} lim=${lim} />
+      <${Detail} key=${cur.name} d=${cur} lim=${lim} sr=${srOf(cur)} fifo=${fifo} />
     </div>
     <div className="foot">${META.note || ""}</div>
   </div>`;
