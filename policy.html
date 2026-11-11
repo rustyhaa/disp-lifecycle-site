@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>처분 정책 시뮬레이터</title>
+<title>처분 정책 설계</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -184,26 +184,30 @@ function Slider({k, v, on}) {
 
 function Panel({P, A, setP, setA, reset}) {
   const sp = (k, v) => setP({...P, [k]: v}), sa = (k, v) => setA({...A, [k]: v});
+  const [more, setMore] = useState(false);
+  const knob = (k, title, why) => html`<div className="step">
+    <div className="sh" style=${{justifyContent:"space-between"}}><span>${title}</span><span style=${{color:"#3B6CF6",fontWeight:700}}>${fmt(k, P[k])}</span></div>
+    <div style=${{fontSize:12,color:"#64748B",lineHeight:1.5}}>${why}</div>
+    <${Slider} k=${k} v=${P[k]} on=${sp} /></div>`;
   return html`<aside className="card panel">
     <div className="ph"><div className="t">정책 설계</div><button className="reset" onClick=${reset}>기본값으로</button></div>
     <div className="note" style=${{marginTop:-6}}>단계형 할인 규칙(마크다운 래더). 값은 가상 설정이며 실제 사내 기준이 아닙니다.</div>
-    <div className="step"><div className="sh"><span className="no" style=${{background:"#93B4FB"}}>1</span>1단계 할인 진입</div>
-      <div className="rule-t">발주종료 뒤 남은 재고가 최근 판매 속도로 <b>${P.X}주 치</b>를 넘으면 <b>${P.d1}% 할인</b></div>
-      <${Slider} k="X" v=${P.X} on=${sp} /><${Slider} k="d1" v=${P.d1} on=${sp} /></div>
-    <div className="step"><div className="sh"><span className="no" style=${{background:"#3B6CF6"}}>2</span>무반응이면 한 단계 더</div>
-      <div className="rule-t"><b>${P.N}주</b> 지켜본 뒤 배수(1단계 주평균 ÷ 직전 주평균)가 <b>${P.Y.toFixed(1)}배 미만</b>이면 <b>${P.d2}% 할인</b></div>
-      <${Slider} k="N" v=${P.N} on=${sp} /><${Slider} k="Y" v=${P.Y} on=${sp} /><${Slider} k="d2" v=${P.d2} on=${sp} /></div>
-    <div className="step"><div className="sh"><span className="no" style=${{background:"#B91C1C"}}>3</span>종료 심사(기안)</div>
-      <div className="rule-t">1단계 시작 뒤 <b>${P.Z}주</b> 안에 다 팔리지 않으면 남은 재고를 종료 심사로 넘김</div>
-      <${Slider} k="Z" v=${P.Z} on=${sp} /></div>
-    <div className="assume">
-      <div className="sh" style=${{display:"flex",alignItems:"center",gap:8,fontSize:12.5,fontWeight:600}}><span className="atag">가정</span>반응 가정 · 손실 가정</div>
-      <${Slider} k="r30" v=${A.r30} on=${sa} />
-      <${Slider} k="r50" v=${A.r50} on=${sa} />
-      <div className="why">기본 1.3배·1.6배 근거: 가격 1% 인하에 판매 1% 증가(탄력성 1)로 보수적으로 잡고, 50%에서는 효과가 덜 늘어난다고 봄. 생성기 안의 값과 일부러 다르게 둠.</div>
-      <${Slider} k="loss" v=${A.loss} on=${sa} />
-      <div className="why">기본 60% 근거: 남은 재고 일부는 반품·재판매로 돌아온다고 보고 원가의 60%를 잃는다고 둠.</div>
-    </div>
+    ${knob("X", "언제 할인을 시작할까", "발주종료 뒤 남은 재고가 몇 주 치를 넘으면")}
+    ${knob("d1", "얼마나 할인할까", "1단계 할인율")}
+    ${knob("Z", "언제 정리할까", "할인 시작 뒤 이 기간 안에 안 팔리면 정리 심사")}
+    <button aria-expanded=${more} onClick=${() => setMore(!more)} style=${{height:36,width:"100%",border:"1px dashed #C4B5FD",borderRadius:12,background:"#fff",color:"#6D28D9",fontWeight:600,fontSize:12.5,cursor:"pointer"}}>${more ? "접기 ▴" : "자세히 설정 ▾"}</button>
+    ${more && html`<div style=${{display:"flex",flexDirection:"column",gap:12}}>
+      <div className="step"><div className="sh"><span className="no" style=${{background:"#3B6CF6"}}>2</span>무반응이면 한 단계 더</div>
+        <div className="rule-t"><b>${P.N}주</b> 지켜본 뒤 배수(1단계 주평균 ÷ 직전 주평균)가 <b>${P.Y.toFixed(1)}배 미만</b>이면 <b>${P.d2}% 할인</b></div>
+        <${Slider} k="N" v=${P.N} on=${sp} /><${Slider} k="Y" v=${P.Y} on=${sp} /><${Slider} k="d2" v=${P.d2} on=${sp} /></div>
+      <div className="assume">
+        <div className="sh" style=${{display:"flex",alignItems:"center",gap:8,fontSize:12.5,fontWeight:600}}><span className="atag">가정</span>반응 가정 · 손실 가정</div>
+        <${Slider} k="r30" v=${A.r30} on=${sa} />
+        <${Slider} k="r50" v=${A.r50} on=${sa} />
+        <div className="why">기본 1.3배·1.6배 근거: 가격 1% 인하에 판매 1% 증가(탄력성 1)로 보수적으로 잡고, 50%에서는 효과가 덜 늘어난다고 봄. 생성기 안의 값과 일부러 다르게 둠.</div>
+        <${Slider} k="loss" v=${A.loss} on=${sa} />
+        <div className="why">기본 60% 근거: 남은 재고 일부는 반품·재판매로 돌아온다고 보고 원가의 60%를 잃는다고 둠.</div>
+      </div></div>`}
   </aside>`;
 }
 
@@ -271,7 +275,7 @@ function Walk({R, sel, setSel, P}) {
     `차이(가정에 기반한 추정): 손실 ${Math.abs(p.total - a.total) < 5000 ? "거의 같음" : manS(p.total - a.total)}, 정리 ${p.clear >= 0 ? wk(p.clear) : "기간 내 미정리"} vs ${a.clear >= 0 ? wk(a.clear) : "기간 내 미정리"}.`
   ];
   return html`<section className="card sect">
-    <div className="hh"><div><div className="ht"><span className="num-o">1</span>대표 상품 워크스루 · ${d.name}</div>
+    <div className="hh"><div><div className="ht">대표 상품 워크스루 · ${d.name}</div>
       <div className="hs">한 상품에 실제 경과와 정책을 겹쳐, 규칙이 언제 무엇을 바꾸는지 먼저 봅니다. 표나 전환표에서 상품을 고르면 바뀝니다.</div></div>
       <div style=${{display:"flex",gap:8,alignItems:"center"}}>
         <select value=${d.name} onChange=${e => setSel(e.target.value)} style=${{height:32,border:"1px solid #E7E9EE",borderRadius:9,padding:"0 10px",fontSize:13,background:"#fff"}} aria-label="상품 선택">${rows.map(x => html`<option key=${x.d.name} value=${x.d.name}>${x.d.name} · ${x.d.dkind || x.d.cat}${x.d.disp.length > 1 ? " · 재처분" : ""}</option>`)}</select>
@@ -328,7 +332,7 @@ function Sens({P, A}) {
   const tmax = Math.max(1, ...tor.flatMap(t => [Math.abs(t.lo - t.base), Math.abs(t.hi - t.base)]));
   const top = tor[0];
   return html`<section className="card sect">
-    <div className="hh"><div><div className="ht"><span className="num-o">3</span>민감도 · 무엇을 바꾸면 결론이 뒤집히나</div>
+    <div className="hh"><div><div className="ht">민감도 · 무엇을 바꾸면 결론이 뒤집히나</div>
       <div className="hs">값 하나만 움직이고 나머지는 지금 설정 그대로 둡니다. 선이 0을 지나는 곳이 "정책이 실제보다 낫다/못하다"가 바뀌는 지점입니다.</div></div></div>
     <div className="seg" style=${{flexWrap:"wrap"}}>${SENS_KEYS.map(k => html`<button key=${k} className=${key === k ? "on" : ""} onClick=${() => setKey(k)}>${RG[k].label.split(":")[0].replace("할인 ", "").replace(" 판매 배율", " 배율")}${RG[k].assume ? html`<span className="atag" style=${{marginLeft:2}}>가정</span>` : null}</button>`)}</div>
     <div className="seg" style=${{alignSelf:"flex-start"}}>${Object.keys(METRIC).map(m => html`<button key=${m} className=${met === m ? "on" : ""} onClick=${() => setMet(m)}>${METRIC[m].t}</button>`)}</div>
@@ -372,7 +376,7 @@ function Exc({R, setSel, P}) {
   const wk = (d, t) => t >= 0 ? wkLabel(d.weeks[t]) : "—";
   const cost = rows.reduce((a, r) => a + (r.a.total - r.p.total), 0);
   return html`<section className="card sect">
-    <div className="hh"><div><div className="ht"><span className="num-o">4</span>예외 리포트 · 정책이면 달라졌을 상품만</div>
+    <div className="hh"><div><div className="ht">예외 리포트 · 정책이면 달라졌을 상품만</div>
       <div className="hs">상품 전체가 아니라 예외만 봅니다. 판정 시점 = 정책 1단계 조건(남은 재고 ${P.X}주 치 초과)이 실제 경과에서 처음 충족된 주.</div></div></div>
     <div className="seg" style=${{alignSelf:"flex-start",flexWrap:"wrap"}}>${Object.keys(EXC).map(k => html`<button key=${k} className=${tab === k ? "on" : ""} onClick=${() => setTab(k)}>${EXC[k].t}<span className="n">${cnt(k)}</span></button>`)}</div>
     <div className="note" style=${{marginTop:-4}}>${EXC[tab].s}</div>
@@ -392,20 +396,48 @@ function Exc({R, setSel, P}) {
   </section>`;
 }
 
+function ResultCard({T}) {
+  const clear = Math.abs(T.dClear) < 0.5 ? "재고 정리 속도 같음" : "재고 정리 " + Math.round(Math.abs(T.dClear)) + "주 " + (T.dClear < 0 ? "빨라짐" : "늦어짐");
+  const loss = Math.abs(T.dTotal) < 50000 ? "손실 거의 같음" : "손실 " + Math.round(Math.abs(T.dTotal)/1e4) + "만원 " + (T.dTotal < 0 ? "적음" : "많음");
+  const box = (label, value) => html`<div style=${{background:"rgba(255,255,255,.08)",borderRadius:12,padding:"10px 12px",display:"flex",flexDirection:"column",gap:4}}>
+    <div style=${{fontSize:12,color:"#94A3B8"}}>${label}</div><div style=${{fontSize:18,fontWeight:700}}>${value}</div></div>`;
+  return html`<section className="sect" style=${{background:"#0F172A",color:"#fff",borderRadius:16,border:"1px solid #0F172A"}}>
+    <div style=${{fontSize:12,color:"#94A3B8",fontWeight:600}}>이 규칙이면</div>
+    <div style=${{fontSize:20,fontWeight:700,letterSpacing:"-.02em",lineHeight:1.35}}>${clear + " · " + loss + " (추정)"}</div>
+    <div style=${{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>
+      ${box("정리 기간", (T.dClear > 0 ? "+" : T.dClear < 0 ? "−" : "") + Math.abs(T.dClear).toFixed(1) + "주")}
+      ${box("손실(추정)", manS(T.dTotal))}
+      ${box("정리 심사로 넘김", T.terms + "개")}
+    </div>
+    <div style=${{fontSize:11.5,color:"#94A3B8"}}>실제 경과(가상 데이터)와 비교한 차이 · 숫자는 가정에 기반한 추정</div>
+  </section>`;
+}
+
+function FlipsCard({S}) {
+  return html`<section className="sect" style=${{background:"#FFF7ED",border:"1px solid #FBD9B8",borderRadius:14}}>
+    <div style=${{fontSize:15,fontWeight:700,letterSpacing:"-.01em"}}>이 결론이 뒤집히는 조건</div>
+    ${S.flips.length
+      ? html`<ul style=${{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:6,fontSize:13,color:"#334155",lineHeight:1.5}}>${S.flips.map((f, i) => html`<li key=${i}>${f.text}${f.assume ? html`<span className="atag" style=${{marginLeft:6}}>가정</span>` : null}</li>`)}</ul>`
+      : html`<div style=${{fontSize:13,color:"#334155"}}>지금 범위에서는 손실 비교가 뒤집히지 않습니다</div>`}
+  </section>`;
+}
+
 function App() {
   const init = useMemo(() => M.load(), []);
   const [P, setP0] = useState(init.P), [A, setA0] = useState(init.A);
   const setP = v => { setP0(v); M.save(v, A); }, setA = v => { setA0(v); M.save(P, v); };
   const reset = () => { setP0({...M.DEFAULT_POLICY}); setA0({...M.DEFAULT_ASSUME}); M.save(M.DEFAULT_POLICY, M.DEFAULT_ASSUME); };
   const R = useMemo(() => M.runAll(ITEMS, P, A), [P, A]);
+  const S = useMemo(() => M.sentences(R.T, M.robust(ITEMS, P), M.flips(ITEMS, P, A, ["loss", "X", "d1", "Z", "Y", "d2"])), [P, A]);
   const hm = location.hash.match(/item=([^&]+)/), hn = hm ? decodeURIComponent(hm[1]) : null;
   const [sel, setSel] = useState(() => (hn && R.rows.find(r => r.scope && r.d.name === hn) ? hn : "상품 11"));
+  const [detail, setDetail] = useState(false);
   return html`<div className="app">
     <header className="top">
       <div className="brand">
         <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h14M3 10h9M3 15h5"/><path d="M15 12l2 2-2 2"/></svg></div>
-        <div><div className="crumb">SCM 재고관리 · 처분 정책</div><h1>처분 정책 시뮬레이터</h1></div>
-        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="policy.html">정책 시뮬레이터</a><a href="index.html">입력 확인</a><a href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a><a href="guide.html">사용설명서</a></nav>
+        <div><div className="crumb">SCM 재고관리 · 처분 정책</div><h1>처분 정책 설계</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a href="easy.html">한눈에 보기</a><a className="on" href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav>
       </div>
       <div className="topr"><div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div></div>
     </header>
@@ -414,15 +446,20 @@ function App() {
     <div className="layout">
       <${Panel} P=${P} A=${A} setP=${setP} setA=${setA} reset=${reset} />
       <div className="secw">
+        <${ResultCard} T=${R.T} />
         <${Walk} R=${R} sel=${sel} setSel=${setSel} P=${P} />
-        <section className="card sect">
-          <div className="hh"><div><div className="ht"><span className="num-o">2</span>상품 ${R.T.n}개 요약 · 실제 경과와의 차이</div>
-            <div className="hs">같은 손실식을 실제 경과와 정책 적용에 똑같이 써서, 믿을 수 있는 것은 절대 금액이 아니라 차이의 방향과 크기입니다.</div></div></div>
-          <${Diff} T=${R.T} />
-          <${Gantt} R=${R} sel=${sel} setSel=${setSel} />
-        </section>
-        <${Sens} P=${P} A=${A} />
-        <${Exc} R=${R} setSel=${v => { setSel(v); window.scrollTo && window.scrollTo({top: 0, behavior: "smooth"}); }} P=${P} />
+        <${FlipsCard} S=${S} />
+        <button aria-expanded=${detail} onClick=${() => setDetail(!detail)} style=${{height:40,width:"100%",border:"1px dashed #C4B5FD",borderRadius:12,background:"#fff",color:"#1D4ED8",fontWeight:600,fontSize:13,cursor:"pointer"}}>${detail ? "접기 ▴" : "자세히 보기 ▾ — 상품별 전환표 · 민감도 · 예외 리포트"}</button>
+        ${detail && html`<div className="secw">
+          <section className="card sect">
+            <div className="hh"><div><div className="ht">상품 ${R.T.n}개 요약 · 실제 경과와의 차이</div>
+              <div className="hs">같은 손실식을 실제 경과와 정책 적용에 똑같이 써서, 믿을 수 있는 것은 절대 금액이 아니라 차이의 방향과 크기입니다.</div></div></div>
+            <${Diff} T=${R.T} />
+            <${Gantt} R=${R} sel=${sel} setSel=${setSel} />
+          </section>
+          <${Sens} P=${P} A=${A} />
+          <${Exc} R=${R} setSel=${v => { setSel(v); window.scrollTo && window.scrollTo({top: 0, behavior: "smooth"}); }} P=${P} />
+        </div>`}
       </div>
     </div>
     <div className="foot">${META.note || ""}</div>
