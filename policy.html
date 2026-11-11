@@ -155,6 +155,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .glegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--mute)}
 .glegend i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .note{font-size:11.5px;color:var(--faint);line-height:1.6}
+.rc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.rc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}.panel{position:static}.diff{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.diff{grid-template-columns:minmax(0,1fr)}.gr{grid-template-columns:64px minmax(0,1fr)}.gr .rt{display:none}.nav{overflow-x:auto;max-width:100%}}
 </style>
@@ -401,13 +403,15 @@ function Exc({R, setSel, P}) {
 function ResultCard({T}) {
   const clear = Math.abs(T.dClear) < 0.5 ? "재고 정리 속도 같음" : "재고 정리 " + Math.round(Math.abs(T.dClear)) + "주 " + (T.dClear < 0 ? "빨라짐" : "늦어짐");
   const loss = Math.abs(T.dTotal) < 50000 ? "손실 거의 같음" : "손실 " + Math.round(Math.abs(T.dTotal)/1e4) + "만원 " + (T.dTotal < 0 ? "적음" : "많음");
+  const space = Math.abs(T.dPWpct) < 1 ? "공간 같음" : "공간 " + Math.round(Math.abs(T.dPWpct)) + "% " + (T.dPW < 0 ? "줄어듦" : "늘어남");
   const box = (label, value) => html`<div style=${{background:"rgba(255,255,255,.08)",borderRadius:12,padding:"10px 12px",display:"flex",flexDirection:"column",gap:4}}>
     <div style=${{fontSize:12,color:"#94A3B8"}}>${label}</div><div style=${{fontSize:18,fontWeight:700}}>${value}</div></div>`;
   return html`<section className="sect" style=${{background:"#0F172A",color:"#fff",borderRadius:16,border:"1px solid #0F172A"}}>
     <div style=${{fontSize:12,color:"#94A3B8",fontWeight:600}}>이 규칙이면</div>
-    <div style=${{fontSize:20,fontWeight:700,letterSpacing:"-.02em",lineHeight:1.35}}>${clear + " · " + loss + " (추정)"}</div>
-    <div style=${{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>
+    <div style=${{fontSize:20,fontWeight:700,letterSpacing:"-.02em",lineHeight:1.35}}>${clear + " · " + space + " · " + loss + " (추정)"}</div>
+    <div className="rc-grid">
       ${box("정리 기간", (T.dClear > 0 ? "+" : T.dClear < 0 ? "−" : "") + Math.abs(T.dClear).toFixed(1) + "주")}
+      ${box("공간(파레트·주)", (T.dPW > 0 ? "+" : "−") + Math.abs(T.dPW).toFixed(1))}
       ${box("손실(추정)", manS(T.dTotal))}
       ${box("정리 심사로 넘김", T.terms + "개")}
     </div>
