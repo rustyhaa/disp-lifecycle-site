@@ -30,6 +30,7 @@ h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .pl{font-weight:600;color:var(--ink2)}
 .pick select{height:36px;max-width:100%;min-width:260px;padding:0 10px;border:1px solid #C9D7FB;border-radius:10px;background:#F5F8FF;font-weight:600;color:#1D4ED8}
 .pnote{font-size:12px;color:var(--mute)}
+.pnote.amb{color:#92400E;background:#FEF3C7;border:1px solid #F5E1A4;border-radius:999px;padding:2px 9px}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:16px;align-items:stretch}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
 .q{padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -85,6 +86,8 @@ const wkLabel = w => w ? "'" + String(w).slice(2,4) + " W" + String(w).slice(4) 
 const bdCls = g => (g === "same-neg" || g === "same-pos") ? "ok" : (g === "depends" ? "warn" : "gray");
 const nf = v => Math.round(v).toLocaleString("ko-KR");
 const fmt1 = v => (typeof v === "number" && isFinite(v)) ? v.toFixed(1) : "—";
+const palFmt = v => (typeof v === "number" && isFinite(v)) ? (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2)) : "—";
+const pinBox = s => [Math.max(44, 10 + 7 * String(s).length), 22];
 const isNum = v => typeof v === "number" && isFinite(v);
 const isOpen = r => r == null || r === "" || r === false || (isNum(r) && r < 0);
 const idxOf = (weeks, v) => isNum(v) ? v : (weeks || []).indexOf(v);
@@ -189,7 +192,7 @@ function useChart(option) {
 }
 
 // 질문 1: 상품별 정리 주수 (실제 점, 규칙 점, 가정 범위 띠)
-function Card1({T, S, rows, band, sel, nCombo}) {
+function Card1({T, S, rows, band, sel, nCombo, scale}) {
   const data = useMemo(() => rows.slice().sort(byName).reverse(), [rows]);
   const q = useMemo(() => data.map((r, i) => {
     const name = r.d.name, p = wkPol(r), b = band[name] || {lo: p, hi: p};
@@ -238,7 +241,7 @@ function Card1({T, S, rows, band, sel, nCombo}) {
     <div className="small">● 실제 → ● 규칙 · 연파랑 띠 = 가정 ${nCombo}가지에서 규칙 정리 주수의 범위 · ✕ = 규칙상 정리 심사로 넘김 · 강조 줄 = 고른 상품${hasHollow ? " · ○ = 기간 안에 정리 안 됨(기간 끝으로 표시)" : ""}</div>
     <div className="sub"><b>${S.space.text}</b><span className=${"bd " + bdCls(S.space.grade)}>${S.space.badge}</span>
       <div className="bars">
-        ${[["실제", T.aPW, "#94A3B8"], ["규칙", T.pPW, "#3B6CF6"]].map(([lab, v, col]) => html`<div className="bar" key=${lab}><span className="bl">${lab}</span><div className="btrack"><div className="bfill" style=${{width: pctOf(v), background: col}}></div></div><span className="bv">${fmt1(v)} 파레트·주</span></div>`)}
+        ${[["실제", T.aPW, "#94A3B8"], ["규칙", T.pPW, "#3B6CF6"]].map(([lab, v, col]) => html`<div className="bar" key=${lab}><span className="bl">${lab}</span><div className="btrack"><div className="bfill" style=${{width: pctOf(v), background: col}}></div></div><span className="bv">${palFmt(v * scale)} 파레트·주${scale > 1 ? "(전 점포 환산)" : ""}</span></div>`)}
       </div>
       <div className="small">파레트·주 = 매주 남은 재고가 차지한 파레트 수의 합(얼마나 많이 × 얼마나 오래). 상품 ${nBigPW}개는 규칙 쪽이 더 큼(실제로 더 일찍 소진된 상품).</div>
     </div>
@@ -248,7 +251,7 @@ function Card1({T, S, rows, band, sel, nCombo}) {
 }
 
 // 질문 2: 고른 상품의 재고 이야기
-function Card2({row, sr}) {
+function Card2({row, sr, scale}) {
   const [pal, setPal] = useState(false);
   const d = row.d, it = row.it, n = d.weeks.length, eo = it.t0, end = Math.round(row.a.end);
   const X = d.weeks.map(wkLabel);
@@ -280,8 +283,8 @@ function Card2({row, sr}) {
   }
 
   const opt = useMemo(() => {
-    const toU = v => !isNum(v) ? null : (pal ? M.pallets(d, v) : v);
-    const fv = v => pal ? v.toFixed(2) + "파레트" : nf(v) + "개";
+    const toU = v => !isNum(v) ? null : (pal ? M.pallets(d, v) * scale : v);
+    const fv = v => pal ? palFmt(v) + "파레트" : nf(v) + "개";
     const stockU = stock.map(toU);
     const pol = row.p.stock.map((v, t) => t < eo - 1 ? null : toU(t === eo - 1 ? it.s0 : v));
     const areas = disp.map((x, i) => {
@@ -293,15 +296,15 @@ function Card2({row, sr}) {
     }).filter(Boolean);
     const pins = [];
     if (d.launch != null && d.launch === d.weeks[0] && stock[0] != null) pins.push({coord: [X[0], stock[0]], value: "출시", itemStyle: {color: "#8B5CF6"}});
-    if (pre && pre.t >= 0 && pre.t < n && stock[pre.t] != null) pins.push({coord: [X[pre.t], stockU[pre.t]], value: fv(pal ? M.pallets(d, pre.q) : pre.q), itemStyle: {color: "#EA580C"}});
-    if (lastIdx >= 0) pins.push({coord: [X[lastIdx], stockU[lastIdx]], value: fv(stockU[lastIdx]), itemStyle: {color: "#0F172A"}});
+    if (pre && pre.t >= 0 && pre.t < n && stock[pre.t] != null) { const pv = fv(pal ? M.pallets(d, pre.q) * scale : pre.q); pins.push({coord: [X[pre.t], stockU[pre.t]], value: pv, symbol: "roundRect", symbolSize: pinBox(pv), itemStyle: {color: "#EA580C"}}); }
+    if (lastIdx >= 0) { const lv = fv(stockU[lastIdx]); pins.push({coord: [X[lastIdx], stockU[lastIdx]], value: lv, symbol: "roundRect", symbolSize: pinBox(lv), itemStyle: {color: "#0F172A"}}); }
     const term = row.p.term;
     const termPins = (term >= 0 && term < n) ? [{coord: [X[term], isNum(row.p.stock[term]) ? toU(row.p.stock[term]) : 0], value: "규칙: " + wkLabel(d.weeks[term]) + " 정리", itemStyle: {color: "#2563EB"}}] : [];
     return mkOpt({
       grid: {left: 44, right: 16, top: 40, bottom: 34},
-      tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}, ...(pal ? {valueFormatter: v => isNum(v) ? v.toFixed(2) : "—"} : {})},
+      tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}, ...(pal ? {valueFormatter: v => palFmt(v)} : {})},
       xAxis: {type: "category", data: X, boundaryGap: false, axisLabel: {color: "#94A3B8", hideOverlap: true, interval: "auto"}, axisLine: {lineStyle: {color: "#E2E8F0"}}, axisTick: {show: false}},
-      yAxis: {type: "value", name: pal ? "재고(파레트)" : "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
+      yAxis: {type: "value", name: pal ? (scale > 1 ? "재고(파레트·전 점포 환산)" : "재고(파레트)") : "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
       series: [
         {name: "실제 재고", type: "line", data: stockU, symbol: "none", connectNulls: false, lineStyle: {color: "#0F172A", width: 2},
           areaStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(15,23,42,.18)"}, {offset: 1, color: "rgba(15,23,42,0)"}]}},
@@ -312,7 +315,7 @@ function Card2({row, sr}) {
           ...(termPins.length ? {markPoint: {symbol: "roundRect", symbolSize: [120, 22], label: {fontSize: 10.5, fontWeight: 700, color: "#fff"}, data: termPins}} : {})}
       ]
     });
-  }, [row, sr, pal]);
+  }, [row, sr, pal, scale]);
   const ref = useChart(opt);
   return html`<section className="card q">
     <div className="qn">질문 2 · 이 상품은 어떻게 흘러왔나 (${d.name})</div>
@@ -323,29 +326,29 @@ function Card2({row, sr}) {
       <button className=${pal ? "on" : ""} onClick=${() => setPal(true)}>파레트</button>
     </div>
     <div className="chart" ref=${ref} style=${{height: 430}}></div>
-    <div className="small">이 상품 공간: 실제 ${fmt1(row.aPW)} → 규칙 ${fmt1(row.pPW)} 파레트·주</div>
+    <div className="small">이 상품 공간: 실제 ${palFmt(row.aPW * scale)} → 규칙 ${palFmt(row.pPW * scale)} 파레트·주${scale > 1 ? " (전 점포 환산)" : ""}</div>
     <div className="small">검은 면 = 실제 재고 · 파란 선 = 규칙을 따랐다면 · 주황 띠 = 처분(할인) 기간 · 점에 손을 대면 주별 값</div>
     <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>정책 설계에서 자세히 →</a>
   </section>`;
 }
 
 // 질문 3: 발주종료 직전 입고분의 결말 (출처 흐름)
-function Card3({fateRows, sel}) {
+function Card3({fateRows, sel, scale}) {
   const [mode, setMode] = useState("all");
   const [unit, setUnit] = useState("count");
   const pal = unit === "pal";
-  const qv = v => pal ? Number(v).toFixed(1) + " 파레트" : nf(v) + "개";
+  const qv = v => pal ? palFmt(Number(v)) + " 파레트" : nf(v) + "개";
   const list = useMemo(() => mode === "all" ? fateRows : fateRows.filter(r => r.d.name === sel), [mode, fateRows, sel]);
   const agg = useMemo(() => {
     const s = {};
     SRCS.forEach(src => { s[src] = {full: 0, disc: 0, left: 0}; });
-    const cv = (r, u) => pal ? M.palletsRaw(r.d, u || 0) : (u || 0);
+    const cv = (r, u) => pal ? M.palletsRaw(r.d, u || 0) * scale : (u || 0);
     list.forEach(r => SRCS.forEach(src => {
       const f = r.fifo.fate[src]; if (!f) return;
       s[src].full += cv(r, f.full); s[src].disc += cv(r, f.disc); s[src].left += cv(r, f.left);
     }));
     return s;
-  }, [list, pal]);
+  }, [list, pal, scale]);
   const tot = src => agg[src].full + agg[src].disc + agg[src].left;
   const preQ = tot("pre"), pct = preQ > 0 ? Math.round(agg.pre.left / preQ * 100) : 0;
   const big = !list.length ? "이 상품은 물량 흐름을 나눌 수 없습니다"
@@ -368,7 +371,7 @@ function Card3({fateRows, sel}) {
     SRCS.forEach(s => { if (!names[s]) return; OUT.forEach(([k, label]) => { const v = agg[s][k]; if (v > eps) links.push({source: names[s], target: label, value: pal ? v : Math.round(v)}); }); });
     return mkOpt({
       tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
-        formatter: p => p.dataType === "edge" ? p.data.source + " → " + p.data.target + ": " + (pal ? Number(p.data.value).toFixed(1) + " 파레트" : p.data.value + "개") : p.name},
+        formatter: p => p.dataType === "edge" ? p.data.source + " → " + p.data.target + ": " + (pal ? palFmt(Number(p.data.value)) + " 파레트" : p.data.value + "개") : p.name},
       series: [{type: "sankey", left: 8, right: 110, top: 10, bottom: 10, nodeWidth: 14, nodeGap: 14, data: nodes, links,
         lineStyle: {color: "gradient", opacity: 0.35, curveness: 0.5}, label: {color: "#0F172A", fontSize: 12, fontWeight: 600}}]
     });
@@ -458,6 +461,8 @@ function App() {
   const m = useMemo(compute, []);
   const {P, A, T, G, S, best, rows, band, nCombo, SR, fateRows} = m;
   const [sel, setSel] = useState(() => initialName(rows, best));
+  const [scaleMode, setScaleMode] = useState("one");
+  const scale = scaleMode === "all" ? M.STORES : 1;
   const sorted = useMemo(() => rows.slice().sort(byName), [rows]);
   const row = rows.find(r => r.d.name === sel) || rows[0];
   const sr = row ? SR.rows.find(x => x.d === row.d) : null;
@@ -481,18 +486,23 @@ function App() {
       <select value=${sel} onChange=${e => choose(e.target.value)}>
         ${sorted.map(r => html`<option key=${r.d.name} value=${r.d.name}>${optText(r)}</option>`)}
       </select>
+      <div className="seg">
+        <button className=${scale === 1 ? "on" : ""} onClick=${() => setScaleMode("one")}>1개 점포</button>
+        <button className=${scale > 1 ? "on" : ""} onClick=${() => setScaleMode("all")}>전 점포 환산</button>
+      </div>
+      ${scale > 1 ? html`<span className="pnote amb">가상 점포 ${M.STORES}곳에 같은 결과를 곱한 값(점포 간 차이 무시)</span>` : null}
       <span className="pnote">정책 대상 ${rows.length}개 · 이름순 · 숫자를 바꾸는 설정은 없음</span>
     </div>
     ${row
       ? html`<div className="grid">
-          <${Card1} T=${T} S=${S} rows=${rows} band=${band} sel=${row.d.name} nCombo=${nCombo} />
-          <${Card2} row=${row} sr=${sr} />
-          <${Card3} fateRows=${fateRows} sel=${row.d.name} />
+          <${Card1} T=${T} S=${S} rows=${rows} band=${band} sel=${row.d.name} nCombo=${nCombo} scale=${scale} />
+          <${Card2} row=${row} sr=${sr} scale=${scale} />
+          <${Card3} fateRows=${fateRows} sel=${row.d.name} scale=${scale} />
           <${Card4} row=${row} sel=${row.d.name} />
         </div>`
       : html`<section className="card q"><div className="small">정책 대상 상품이 없습니다.</div></section>`}
     <div className="foot">
-      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과 · ${volText}</div>
+      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과 · ${volText} · 전 점포 환산은 가상 점포 ${M.STORES}곳 기준</div>
       <div><a className="link" href="policy.html">정책 설계에서 바꿔 보기 →</a></div>
       <div>${META.note || ""}</div>
     </div>
