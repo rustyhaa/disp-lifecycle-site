@@ -46,6 +46,13 @@ h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2);align-self:flex-start}
 .seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer}
 .seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.segrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bars{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.bar{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+.bl{color:var(--mute)}
+.btrack{height:10px;border-radius:6px;background:var(--line2);overflow:hidden}
+.bfill{height:100%;border-radius:6px}
+.bv{font-weight:600;color:var(--ink);white-space:nowrap}
 .hist{display:flex;gap:8px;flex-wrap:wrap}
 .hc{flex:1;min-width:150px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.6;color:var(--ink2)}
 .hc b{display:block;font-size:13px;color:var(--ink)}
@@ -189,6 +196,9 @@ function Card1({T, S, rows, band, sel, nCombo}) {
     return {i, name, a: wkAct(r), p, lo: b.lo, hi: b.hi, hollow: !(r.a.clear >= 0), term: r.p.term >= 0, sel: name === sel};
   }), [data, band, sel]);
   const hasHollow = q.some(x => x.hollow);
+  const mxPW = Math.max(T.aPW || 0, T.pPW || 0, 1e-9);
+  const pctOf = v => (Math.max(0, v || 0) / mxPW * 100).toFixed(1) + "%";
+  const nBigPW = rows.filter(r => r.pPW > r.aPW).length;
   const opt = useMemo(() => mkOpt({
     grid: {left: 62, right: 18, top: 24, bottom: 44},
     tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
@@ -226,6 +236,12 @@ function Card1({T, S, rows, band, sel, nCombo}) {
     <span className=${"bd " + bdCls(S.clear.grade)}>${S.clear.badge}</span>
     <div className="chart" ref=${ref} style=${{height: 430}}></div>
     <div className="small">● 실제 → ● 규칙 · 연파랑 띠 = 가정 ${nCombo}가지에서 규칙 정리 주수의 범위 · ✕ = 규칙상 정리 심사로 넘김 · 강조 줄 = 고른 상품${hasHollow ? " · ○ = 기간 안에 정리 안 됨(기간 끝으로 표시)" : ""}</div>
+    <div className="sub"><b>${S.space.text}</b><span className=${"bd " + bdCls(S.space.grade)}>${S.space.badge}</span>
+      <div className="bars">
+        ${[["실제", T.aPW, "#94A3B8"], ["규칙", T.pPW, "#3B6CF6"]].map(([lab, v, col]) => html`<div className="bar" key=${lab}><span className="bl">${lab}</span><div className="btrack"><div className="bfill" style=${{width: pctOf(v), background: col}}></div></div><span className="bv">${fmt1(v)} 파레트·주</span></div>`)}
+      </div>
+      <div className="small">파레트·주 = 매주 남은 재고가 차지한 파레트 수의 합(얼마나 많이 × 얼마나 오래). 상품 ${nBigPW}개는 규칙 쪽이 더 큼(실제로 더 일찍 소진된 상품).</div>
+    </div>
     <div className="sub"><b>${S.loss.text}</b><span className=${"bd " + bdCls(S.loss.grade)}>${S.loss.badge}</span></div>
     <div className="small">발주종료부터 다 팔리거나 정리할 때까지 평균 · 대상 상품 ${T.n}개</div>
   </section>`;
@@ -233,6 +249,7 @@ function Card1({T, S, rows, band, sel, nCombo}) {
 
 // 질문 2: 고른 상품의 재고 이야기
 function Card2({row, sr}) {
+  const [pal, setPal] = useState(false);
   const d = row.d, it = row.it, n = d.weeks.length, eo = it.t0, end = Math.round(row.a.end);
   const X = d.weeks.map(wkLabel);
   const clamp = v => Math.max(0, Math.min(n - 1, v));
@@ -263,7 +280,10 @@ function Card2({row, sr}) {
   }
 
   const opt = useMemo(() => {
-    const pol = row.p.stock.map((v, t) => t < eo - 1 ? null : (t === eo - 1 ? (isNum(it.s0) ? it.s0 : null) : (isNum(v) ? v : null)));
+    const toU = v => !isNum(v) ? null : (pal ? M.pallets(d, v) : v);
+    const fv = v => pal ? v.toFixed(2) + "파레트" : nf(v) + "개";
+    const stockU = stock.map(toU);
+    const pol = row.p.stock.map((v, t) => t < eo - 1 ? null : toU(t === eo - 1 ? it.s0 : v));
     const areas = disp.map((x, i) => {
       const s = idxOf(d.weeks, x.start);
       if (!(s >= 0)) return null;
@@ -273,17 +293,17 @@ function Card2({row, sr}) {
     }).filter(Boolean);
     const pins = [];
     if (d.launch != null && d.launch === d.weeks[0] && stock[0] != null) pins.push({coord: [X[0], stock[0]], value: "출시", itemStyle: {color: "#8B5CF6"}});
-    if (pre && pre.t >= 0 && pre.t < n && stock[pre.t] != null) pins.push({coord: [X[pre.t], stock[pre.t]], value: nf(pre.q) + "개", itemStyle: {color: "#EA580C"}});
-    if (lastIdx >= 0) pins.push({coord: [X[lastIdx], stock[lastIdx]], value: nf(stock[lastIdx]) + "개", itemStyle: {color: "#0F172A"}});
+    if (pre && pre.t >= 0 && pre.t < n && stock[pre.t] != null) pins.push({coord: [X[pre.t], stockU[pre.t]], value: fv(pal ? M.pallets(d, pre.q) : pre.q), itemStyle: {color: "#EA580C"}});
+    if (lastIdx >= 0) pins.push({coord: [X[lastIdx], stockU[lastIdx]], value: fv(stockU[lastIdx]), itemStyle: {color: "#0F172A"}});
     const term = row.p.term;
-    const termPins = (term >= 0 && term < n) ? [{coord: [X[term], isNum(row.p.stock[term]) ? row.p.stock[term] : 0], value: "규칙: " + wkLabel(d.weeks[term]) + " 정리", itemStyle: {color: "#2563EB"}}] : [];
+    const termPins = (term >= 0 && term < n) ? [{coord: [X[term], isNum(row.p.stock[term]) ? toU(row.p.stock[term]) : 0], value: "규칙: " + wkLabel(d.weeks[term]) + " 정리", itemStyle: {color: "#2563EB"}}] : [];
     return mkOpt({
       grid: {left: 44, right: 16, top: 40, bottom: 34},
-      tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}},
+      tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}, ...(pal ? {valueFormatter: v => isNum(v) ? v.toFixed(2) : "—"} : {})},
       xAxis: {type: "category", data: X, boundaryGap: false, axisLabel: {color: "#94A3B8", hideOverlap: true, interval: "auto"}, axisLine: {lineStyle: {color: "#E2E8F0"}}, axisTick: {show: false}},
-      yAxis: {type: "value", name: "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
+      yAxis: {type: "value", name: pal ? "재고(파레트)" : "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
       series: [
-        {name: "실제 재고", type: "line", data: stock, symbol: "none", connectNulls: false, lineStyle: {color: "#0F172A", width: 2},
+        {name: "실제 재고", type: "line", data: stockU, symbol: "none", connectNulls: false, lineStyle: {color: "#0F172A", width: 2},
           areaStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(15,23,42,.18)"}, {offset: 1, color: "rgba(15,23,42,0)"}]}},
           markArea: {silent: true, itemStyle: {color: "rgba(249,115,22,.10)"}, label: {color: "#C2410C", fontSize: 11, fontWeight: 600, position: "insideTop"}, data: areas},
           markLine: {silent: true, symbol: "none", lineStyle: {color: "#B7791F", type: "dashed"}, label: {formatter: "발주종료", color: "#B7791F", fontSize: 11, fontWeight: 600}, data: [{xAxis: X[clamp(eo)]}]},
@@ -292,13 +312,18 @@ function Card2({row, sr}) {
           ...(termPins.length ? {markPoint: {symbol: "roundRect", symbolSize: [120, 22], label: {fontSize: 10.5, fontWeight: 700, color: "#fff"}, data: termPins}} : {})}
       ]
     });
-  }, [row, sr]);
+  }, [row, sr, pal]);
   const ref = useChart(opt);
   return html`<section className="card q">
     <div className="qn">질문 2 · 이 상품은 어떻게 흘러왔나 (${d.name})</div>
     <div className="big">${big}</div>
     <span className="bd gray">${badge}</span>
+    <div className="seg">
+      <button className=${!pal ? "on" : ""} onClick=${() => setPal(false)}>개</button>
+      <button className=${pal ? "on" : ""} onClick=${() => setPal(true)}>파레트</button>
+    </div>
     <div className="chart" ref=${ref} style=${{height: 430}}></div>
+    <div className="small">이 상품 공간: 실제 ${fmt1(row.aPW)} → 규칙 ${fmt1(row.pPW)} 파레트·주</div>
     <div className="small">검은 면 = 실제 재고 · 파란 선 = 규칙을 따랐다면 · 주황 띠 = 처분(할인) 기간 · 점에 손을 대면 주별 값</div>
     <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>정책 설계에서 자세히 →</a>
   </section>`;
@@ -307,52 +332,64 @@ function Card2({row, sr}) {
 // 질문 3: 발주종료 직전 입고분의 결말 (출처 흐름)
 function Card3({fateRows, sel}) {
   const [mode, setMode] = useState("all");
+  const [unit, setUnit] = useState("count");
+  const pal = unit === "pal";
+  const qv = v => pal ? Number(v).toFixed(1) + " 파레트" : nf(v) + "개";
   const list = useMemo(() => mode === "all" ? fateRows : fateRows.filter(r => r.d.name === sel), [mode, fateRows, sel]);
   const agg = useMemo(() => {
     const s = {};
     SRCS.forEach(src => { s[src] = {full: 0, disc: 0, left: 0}; });
+    const cv = (r, u) => pal ? M.palletsRaw(r.d, u || 0) : (u || 0);
     list.forEach(r => SRCS.forEach(src => {
       const f = r.fifo.fate[src]; if (!f) return;
-      s[src].full += f.full || 0; s[src].disc += f.disc || 0; s[src].left += f.left || 0;
+      s[src].full += cv(r, f.full); s[src].disc += cv(r, f.disc); s[src].left += cv(r, f.left);
     }));
     return s;
-  }, [list]);
+  }, [list, pal]);
   const tot = src => agg[src].full + agg[src].disc + agg[src].left;
   const preQ = tot("pre"), pct = preQ > 0 ? Math.round(agg.pre.left / preQ * 100) : 0;
   const big = !list.length ? "이 상품은 물량 흐름을 나눌 수 없습니다"
-    : preQ > 0 ? "종료 직전 입고 " + nf(preQ) + "개 중 " + pct + "%가 끝내 남았습니다"
+    : preQ > 0 ? "종료 직전 입고 " + qv(preQ) + " 중 " + pct + "%가 끝내 남았습니다"
     : (mode === "all" ? "전체 상품은" : "이 상품은") + " 종료 직전 큰 입고가 없습니다";
   const opt = useMemo(() => {
     if (!list.length) return null;
+    const eps = pal ? 0.05 : 0.5;
     const names = {}, nodes = [], links = [];
     SRCS.forEach(s => {
-      if (tot(s) > 0.5) {
-        names[s] = ((SM.LABEL && SM.LABEL[s]) || s) + " " + nf(tot(s)) + "개";
+      if (tot(s) > eps) {
+        names[s] = ((SM.LABEL && SM.LABEL[s]) || s) + " " + qv(tot(s));
         nodes.push({name: names[s], itemStyle: {color: SRC_COL[s]}});
       }
     });
     OUT.forEach(([k, label, col]) => {
       const t = SRCS.reduce((a, s) => a + agg[s][k], 0);
-      if (t > 0.5) nodes.push({name: label, itemStyle: {color: col}});
+      if (t > eps) nodes.push({name: label, itemStyle: {color: col}});
     });
-    SRCS.forEach(s => { if (!names[s]) return; OUT.forEach(([k, label]) => { const v = agg[s][k]; if (v > 0.5) links.push({source: names[s], target: label, value: Math.round(v)}); }); });
+    SRCS.forEach(s => { if (!names[s]) return; OUT.forEach(([k, label]) => { const v = agg[s][k]; if (v > eps) links.push({source: names[s], target: label, value: pal ? v : Math.round(v)}); }); });
     return mkOpt({
       tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
-        formatter: p => p.dataType === "edge" ? p.data.source + " → " + p.data.target + ": " + p.data.value + "개" : p.name},
+        formatter: p => p.dataType === "edge" ? p.data.source + " → " + p.data.target + ": " + (pal ? Number(p.data.value).toFixed(1) + " 파레트" : p.data.value + "개") : p.name},
       series: [{type: "sankey", left: 8, right: 110, top: 10, bottom: 10, nodeWidth: 14, nodeGap: 14, data: nodes, links,
         lineStyle: {color: "gradient", opacity: 0.35, curveness: 0.5}, label: {color: "#0F172A", fontSize: 12, fontWeight: 600}}]
     });
-  }, [agg]);
+  }, [agg, pal]);
   const ref = useChart(opt);
   return html`<section className="card q">
     <div className="qn">질문 3 · 끝나기 직전에 들어온 물량은 어떻게 됐나</div>
-    <div className="seg">
-      <button className=${mode === "all" ? "on" : ""} onClick=${() => setMode("all")}>전체</button>
-      <button className=${mode === "one" ? "on" : ""} onClick=${() => setMode("one")}>이 상품</button>
+    <div className="segrow">
+      <div className="seg">
+        <button className=${mode === "all" ? "on" : ""} onClick=${() => setMode("all")}>전체</button>
+        <button className=${mode === "one" ? "on" : ""} onClick=${() => setMode("one")}>이 상품</button>
+      </div>
+      <div className="seg">
+        <button className=${unit === "count" ? "on" : ""} onClick=${() => setUnit("count")}>개수</button>
+        <button className=${unit === "pal" ? "on" : ""} onClick=${() => setUnit("pal")}>파레트</button>
+      </div>
     </div>
     <div className="big">${big}</div>
     <span className="bd warn">가상 데이터라 비중은 예시 · 오래된 입고부터 팔린다고 가정</span>
     ${list.length ? html`<div className="chart" ref=${ref} style=${{height: 300}}></div>` : html`<div className="small">이 상품은 입고를 출처별로 나눌 수 없어 그림을 그리지 않습니다.</div>`}
+    ${pal ? html`<div className="small">파레트는 상자 올림 없이 부피만 더한 값</div>` : null}
     <div className="small">발주종료 때 남은 재고(입고 출처) → 결말 · 굵기 = 개수 · 입고는 재고·판매로 역산한 추정</div>
   </section>`;
 }
@@ -424,6 +461,8 @@ function App() {
   const sorted = useMemo(() => rows.slice().sort(byName), [rows]);
   const row = rows.find(r => r.d.name === sel) || rows[0];
   const sr = row ? SR.rows.find(x => x.d === row.d) : null;
+  const volText = "부피(가상): " + Object.keys(M.VOLUME).filter(k => k !== "_default").map(k => k + " " + M.VOLUME[k].unitL + "L·" + M.VOLUME[k].perBox + "입").join(", ")
+    + " · 파레트 KS T11 " + M.PALLET.w + "×" + M.PALLET.d + "m, 적재 높이 " + M.PALLET.h + "m·효율 " + Math.round(M.PALLET.eff * 100) + "%(가상) → 파레트당 " + M.palletCbm().toFixed(2) + "CBM";
   const choose = name => {
     setSel(name);
     try { history.replaceState(null, "", "#item=" + encodeURIComponent(name)); } catch (e) {}
@@ -453,7 +492,7 @@ function App() {
         </div>`
       : html`<section className="card q"><div className="small">정책 대상 상품이 없습니다.</div></section>`}
     <div className="foot">
-      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과</div>
+      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과 · ${volText}</div>
       <div><a className="link" href="policy.html">정책 설계에서 바꿔 보기 →</a></div>
       <div>${META.note || ""}</div>
     </div>
