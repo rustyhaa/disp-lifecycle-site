@@ -105,6 +105,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
 @media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+
+@media (max-width:560px){.brand{flex-wrap:wrap;row-gap:10px}.brand .nav{margin-left:0 !important;width:100%;overflow-x:auto}h1{white-space:nowrap}.top{align-items:flex-start}}
 </style>
 <style>
 .nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
@@ -176,8 +178,9 @@ const fmt = (k, v) => (RG[k].step < 1 ? v.toFixed(1) : String(v)) + RG[k].unit;
 const STAGE_C = {0:"transparent", 1:"#93B4FB", 2:"#3B6CF6", 3:"#B91C1C"};
 const discC = d => !d ? "transparent" : d < 35 ? "#FDBA8C" : d < 55 ? "#F97316" : "#C2410C";
 
-function Slider({k, v, on}) {
+function Slider({k, v, on, bare}) {
   const r = RG[k];
+  if (bare) return html`<input type="range" min=${r.min} max=${r.max} step=${r.step} value=${v} onChange=${e => on(k, +e.target.value)} aria-label=${r.label} style=${{width:"100%",accentColor:"var(--accent)"}} />`;
   return html`<label className="sl"><span>${r.label}</span><output>${fmt(k, v)}</output>
     <input type="range" min=${r.min} max=${r.max} step=${r.step} value=${v} onChange=${e => on(k, +e.target.value)} aria-label=${r.label} /></label>`;
 }
@@ -188,7 +191,7 @@ function Panel({P, A, setP, setA, reset}) {
   const knob = (k, title, why) => html`<div className="step">
     <div className="sh" style=${{justifyContent:"space-between"}}><span>${title}</span><span style=${{color:"#3B6CF6",fontWeight:700}}>${fmt(k, P[k])}</span></div>
     <div style=${{fontSize:12,color:"#64748B",lineHeight:1.5}}>${why}</div>
-    <${Slider} k=${k} v=${P[k]} on=${sp} /></div>`;
+    <${Slider} k=${k} v=${P[k]} on=${sp} bare=${true} /></div>`;
   return html`<aside className="card panel">
     <div className="ph"><div className="t">정책 설계</div><button className="reset" onClick=${reset}>기본값으로</button></div>
     <div className="note" style=${{marginTop:-6}}>단계형 할인 규칙(마크다운 래더). 값은 가상 설정이며 실제 사내 기준이 아닙니다.</div>
