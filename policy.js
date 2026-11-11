@@ -182,8 +182,95 @@
   }
   function save(P, A) { try { root.localStorage.setItem(KEY, JSON.stringify({ P: P, A: A })); return true; } catch (e) { return false; } }
 
+  /* 설정값 없는 화면(한눈에 보기)용: 문장마다 가정 격자를 돌려 등급을 붙인다. 화면 문장은 전부 이 함수가 만든다(손으로 친 숫자 없음). */
+  var GRID = { r30: [1.0, 1.3, 1.6, 2.0, 2.5], r50: [1.0, 1.6, 2.2, 3.0], loss: [0, 30, 60, 80, 100] };  // r50 >= r30 조합만 → 65개
+  var FLAT = { dTotal: 50000, dClear: 0.5 };   // |v| < FLAT 이면 "차이 거의 없음"
+
+  function tally() { return { neg: 0, pos: 0, flat: 0, min: Infinity, max: -Infinity }; }
+  function addTo(t, v, f) {
+    if (v <= -f) t.neg++; else if (v >= f) t.pos++; else t.flat++;
+    if (v < t.min) t.min = v;
+    if (v > t.max) t.max = v;
+  }
+  // 격자 전 조합의 실제 대비 차이를 모은다
+  function robust(items, P) {
+    var G = { n: 0, dClear: tally(), dTotal: tally() };
+    GRID.r30.forEach(function (r30) {
+      GRID.r50.forEach(function (r50) {
+        if (r50 < r30) return;
+        GRID.loss.forEach(function (loss) {
+          var T = runAll(items, P, { r30: r30, r50: r50, loss: loss }).T;
+          G.n++;
+          addTo(G.dClear, T.dClear, FLAT.dClear);
+          addTo(G.dTotal, T.dTotal, FLAT.dTotal);
+        });
+      });
+    });
+    return G;
+  }
+  function grade(t, n) {
+    if (t.neg === n) return "same-neg";
+    if (t.pos === n) return "same-pos";
+    if (t.flat === n) return "flat";
+    return "depends";
+  }
+  // 손익 부호가 바뀌는 지점(가정값 또는 정책값)을 찾는다. dir: 현재 값에서 어느 쪽으로 움직여야 뒤집히는지
+  function flips(items, P, A, keys) {
+    var out = [];
+    keys.forEach(function (key) {
+      // 정리 기한(Z)·관찰 기간(N)은 정수 주에서만 작동한다(simulate가 t === s1 + 값으로 비교). 보간하면 소수 값이 나와 판정이 안 되므로
+      // 정수 격자에서 찾고, 부호가 처음 바뀐 정수 값을 쓴다.
+      var disc = key === "Z" || key === "N", vals = [], r = RANGES[key];
+      if (disc) for (var q = r.min; q <= r.max; q++) vals.push(q); else vals = steps(key);
+      var s = sweep(items, P, A, key, vals);
+      for (var i = 1; i < s.length; i++) {
+        var a = s[i - 1].dTotal, b = s[i].dTotal;
+        if ((a < 0) !== (b < 0) && a !== b) {
+          var v = disc ? s[i].v : s[i - 1].v + (s[i].v - s[i - 1].v) * (0 - a) / (b - a);
+          var cur = RANGES[key].assume ? A[key] : P[key];
+          out.push({ k: key, v: v, cur: cur, dir: cur > v ? "down" : "up" });
+          break;
+        }
+      }
+    });
+    return out;
+  }
+  var FLIP_LABEL = { loss: "남은 재고 처리 손실률", X: "할인 시작 기준(남은 재고 주수)", d1: "1단계 할인율", Z: "정리 기한",
+                     Y: "2단계 진입 배수", d2: "2단계 할인율", N: "관찰 기간", r30: "할인 30%일 때 판매 배율", r50: "할인 50%일 때 판매 배율" };
+  // 화면 문장 생성: T = 현재 설정의 결과, G = robust(), F = flips()
+  function sentences(T, G, F) {
+    var cg = grade(G.dClear, G.n), lg = grade(G.dTotal, G.n);
+    var ct, cb, lt, lb;
+    if (cg === "same-neg") {
+      ct = "재고 정리가 평균 " + Math.round(-T.dClear) + "주 빨라집니다";
+      cb = "어떤 가정에서도 같은 방향 · " + Math.round(-G.dClear.max) + "~" + Math.round(-G.dClear.min) + "주";
+    } else if (cg === "same-pos") {
+      ct = "재고 정리가 평균 " + Math.round(T.dClear) + "주 늦어집니다";
+      cb = "어떤 가정에서도 같은 방향 · " + Math.round(G.dClear.min) + "~" + Math.round(G.dClear.max) + "주";
+    } else if (cg === "flat") {
+      ct = "재고 정리 속도는 거의 같습니다";
+      cb = "어떤 가정에서도 차이 거의 없음";
+    } else {
+      ct = "재고 정리 속도는 가정에 따라 달라집니다";
+      cb = G.n + "가지 가정 중 " + G.dClear.neg + "가지에서 빨라지고 " + G.dClear.pos + "가지에서 늦어짐";
+    }
+    if (lg === "same-neg") { lt = "손실이 줄어듭니다"; lb = "어떤 가정에서도 같은 방향"; }
+    else if (lg === "same-pos") { lt = "손실이 늘어납니다"; lb = "어떤 가정에서도 같은 방향"; }
+    else if (lg === "flat") { lt = "손실은 거의 같습니다"; lb = "어떤 가정에서도 차이 거의 없음"; }
+    else { lt = "손실은 가정에 따라 달라집니다"; lb = G.n + "가지 가정 중 " + G.dTotal.neg + "가지에서 줄고 " + G.dTotal.pos + "가지에서 늘어남"; }
+    return {
+      clear: { grade: cg, text: ct, badge: cb },
+      loss: { grade: lg, text: lt, badge: lb },
+      flips: F.map(function (f) {
+        var r = RANGES[f.k], vs = r.step < 1 ? f.v.toFixed(1) : String(Math.round(f.v));
+        return { k: f.k, text: FLIP_LABEL[f.k] + " " + vs + r.unit + (f.dir === "down" ? " 미만" : " 초과"), assume: !!r.assume };
+      })
+    };
+  }
+
   var API = { K: K, TRAIL: TRAIL, TOL: TOL, DEFAULT_POLICY: DEFAULT_POLICY, DEFAULT_ASSUME: DEFAULT_ASSUME, RANGES: RANGES,
               lift: lift, baseDemand: baseDemand, prepItem: prepItem, simulate: simulate, actual: actual, delay: delay,
-              runAll: runAll, sweep: sweep, steps: steps, load: load, save: save };
+              runAll: runAll, sweep: sweep, steps: steps, load: load, save: save,
+              GRID: GRID, FLAT: FLAT, robust: robust, grade: grade, flips: flips, sentences: sentences, FLIP_LABEL: FLIP_LABEL };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.DispPolicy = API;
 })(typeof window !== "undefined" ? window : globalThis);
