@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>재고 처분 한눈에 보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F7; --panel:#FFFFFF; --ink:#0F172A; --ink2:#334155; --mute:#64748B; --faint:#94A3B8;
+  --line:#E7E9EE; --line2:#F1F3F6; --accent:#3B6CF6; --accent-ink:#1D4ED8; --accent-soft:#EEF3FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+.app{max-width:1560px;margin:0 auto;padding-block:18px 14px;padding-left:max(clamp(16px,2vw,32px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,2vw,32px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3B6CF6,#1E3A8A);display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(59,108,246,.6)}
+.crumb{font-size:12px;color:var(--mute);font-weight:500;letter-spacing:.02em}
+h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.topr{display:flex;align-items:center;gap:12px}
+.stamp{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.live{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 0 3px #D1FAE5}
+.rule{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px}
+.rule input[type=range]{width:140px;accent-color:var(--accent)}
+.rule b{min-width:42px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
+.kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.kl{font-size:13px;color:var(--mute);font-weight:500}
+.kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kv small{font-size:15px;font-weight:600;color:var(--mute);margin-left:3px}
+.ks{font-size:12px;color:var(--mute)}
+.dist{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:4px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
+.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.main{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px;align-items:start}
+.listhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2)}
+.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.seg .n{font-size:11px;color:var(--faint);font-weight:500}
+.search{height:34px;width:180px;border:1px solid var(--line);border-radius:9px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3 3'/%3E%3C/svg%3E") no-repeat 11px center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11.5px;font-weight:500;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+tr.r{cursor:pointer;transition:background .12s}
+tr.r:hover{background:#F8FAFC}
+tr.r.sel{background:var(--accent-soft)}
+tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.num{text-align:right}
+.pn{font-weight:600}
+.pk{font-size:11.5px;color:var(--mute);margin-top:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.arrow{color:var(--faint);margin:0 4px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600}
+.pill i{width:6px;height:6px;border-radius:50%}
+.mult{font-weight:600}
+.det{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dt{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dm{font-size:13px;color:var(--mute);margin-top:4px}
+.chartwrap{position:relative}
+.tip{position:absolute;pointer-events:none;background:#0F172A;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px -8px rgba(15,23,42,.5);white-space:nowrap;transform:translate(-50%,-100%)}
+.tip b{font-weight:600}
+.tip span{color:#94A3B8}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
+.st .l{font-size:12px;color:var(--mute)}
+.st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+.st .s{font-size:11.5px;color:var(--mute);margin-top:2px}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sec{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.tl{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding-bottom:7px;position:relative}
+.ev:not(:last-child):before{content:"";position:absolute;left:8px;top:16px;bottom:0;width:2px;background:var(--line2)}
+.ev .d{width:10px;height:10px;border-radius:50%;margin:4px 0 0 4px;border:2px solid #fff;box-shadow:0 0 0 1.5px currentColor}
+.ev .t{font-size:13px;font-weight:600}
+.ev .x{font-size:12px;color:var(--mute)}
+.ev .w{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.field label{font-size:12px;color:var(--mute)}
+.field input{height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;background:#fff}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.save{height:36px;width:100%;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.foot{font-size:12px;color:var(--faint);line-height:1.6}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;font-size:12.5px;color:var(--mute)}
+.pager div{display:flex;gap:6px}
+.pager button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer}
+.pager button:disabled{color:var(--faint);cursor:default;background:var(--line2)}
+.tw{overflow-x:auto}
+.tw table{min-width:640px}
+.save.ok{background:#047857}
+.save.bad{background:#B91C1C}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
+@media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
+.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
+.crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
+@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
+.nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
+.nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
+.nav a.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.link{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
+.link:hover{background:#EAF0FF}
+.eq{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:1100px){.eq{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}}
+.q{padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.qn{font-size:12px;color:var(--mute);font-weight:600;letter-spacing:.01em}
+.big{font-size:19px;font-weight:700;line-height:1.4;letter-spacing:-.01em;color:var(--ink)}
+.bd{display:inline-block;align-self:flex-start;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;line-height:1.4}
+.bd.ok{background:#DCFCE7;color:#166534}
+.bd.warn{background:#FEF3C7;color:#92400E}
+.bd.gray{background:#E2E8F0;color:#475569}
+.cmp{display:grid;grid-template-columns:34px minmax(0,1fr) 46px;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.cb{height:14px;background:var(--line2);border-radius:7px;overflow:hidden}
+.cb i{display:block;height:100%;border-radius:7px}
+.cv{font-weight:700;text-align:right}
+.small{font-size:12px;color:var(--mute);line-height:1.5}
+.sub{font-size:13px;color:var(--ink2);display:flex;flex-direction:column;align-items:flex-start;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
+.sub b{font-weight:700;color:var(--ink);font-size:14px}
+.tl{margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:var(--ink2)}
+.tl li.hot{color:#C2410C;font-weight:600}
+.tl b{display:inline-block;min-width:64px;color:var(--ink);font-weight:600}
+.chart{width:100%}
+.chart svg{display:block}
+.stack{display:flex;height:18px;border-radius:9px;overflow:hidden;gap:2px;background:var(--line2)}
+.stack i{display:block;height:100%;min-width:0}
+.sl{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink2)}
+.sl b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.note{font-size:11.5px;color:#92400E;background:#FFFBEB;border-radius:8px;padding:6px 9px;line-height:1.5}
+.foot{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mute);line-height:1.7;padding:2px 4px 8px}
+.foot b{color:var(--ink2)}
+</style>
+</head>
+<body>
+<div id="root"><div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">데이터 불러오는 중…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="policy.js"></script>
+<script src="source.js"></script>
+<script>
+let ITEMS = [], META = {};
+const {useMemo} = React;
+const html = htm.bind(React.createElement);
+const M = window.DispPolicy, SM = window.DispSource;
+const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
+const pct = (v, mx) => (mx > 0 ? Math.max(0, v) / mx * 100 : 0).toFixed(1) + "%";
+const bdCls = g => (g === "same-neg" || g === "same-pos") ? "ok" : (g === "depends" ? "warn" : "gray");
+const nf = v => Math.round(v).toLocaleString("ko-KR");
+
+// 모든 숫자는 기본 설정(M.DEFAULT_POLICY, M.DEFAULT_ASSUME)으로 로드 시 계산한다
+function compute() {
+  const P = M.DEFAULT_POLICY, A = M.DEFAULT_ASSUME;
+  const R = M.runAll(ITEMS, P, A);
+  const G = M.robust(ITEMS, P);
+  const S = M.sentences(R.T, G, []);
+  const SR = SM.runAll(ITEMS, SM.DEFAULT, M, P, A);
+
+  // 질문 2: 재처분(2회 이상) 상품 중 가장 큰 '종료 직전 입고' 한 건을 가진 상품
+  let best = null;
+  R.rows.forEach(r => {
+    if (!r.scope || r.d.disp.length < 2) return;
+    const sr = SR.rows.find(x => x.d === r.d);
+    if (!sr || !sr.inf) return;
+    sr.inf.events.forEach(e => {
+      if (e.type === "pre" && (!best || e.q > best.qp)) best = {r, sr, tp: e.t, qp: e.q};
+    });
+  });
+
+  // 질문 3: 종료 직전 입고분이 발주종료 때 남은 재고에서 차지하는 비중과 결말
+  let full = 0, disc = 0, left = 0;
+  SR.rows.forEach(r => {
+    const f = r.fifo && r.sim && r.fifo.fate && r.fifo.fate.pre;
+    if (f) { full += f.full; disc += f.disc; left += f.left; }
+  });
+  const tot = full + disc + left;
+  const sp = {
+    pct: SR.fifo.sumAt > 0 ? Math.round(SR.fifo.at.pre / SR.fifo.sumAt * 100) : 0,
+    full, disc, left, tot,
+    sh: v => tot > 0 ? Math.round(v / tot * 100) : 0
+  };
+  return {P, A, T: R.T, G, S, best, sp};
+}
+
+function Card1({T, S}) {
+  const mx = Math.max(T.aClear, T.pClear, 0.0001);
+  return html`<section className="card q">
+    <div className="qn">질문 1 · 규칙을 정해 두면 무엇이 달라지나</div>
+    <div className="big">${S.clear.text}</div>
+    <span className=${"bd " + bdCls(S.clear.grade)}>${S.clear.badge}</span>
+    <div className="cmp">
+      <span>실제</span><div className="cb"><i style=${{width: pct(T.aClear, mx), background: "#94A3B8"}}></i></div><span className="cv">${Math.round(T.aClear)}주</span>
+      <span>규칙</span><div className="cb"><i style=${{width: pct(T.pClear, mx), background: "#2563EB"}}></i></div><span className="cv">${Math.round(T.pClear)}주</span>
+    </div>
+    <div className="small">발주종료부터 다 팔리거나 정리할 때까지 평균 · 대상 상품 ${T.n}개</div>
+    <div className="sub"><b>${S.loss.text}</b><span className=${"bd " + bdCls(S.loss.grade)}>${S.loss.badge}</span></div>
+  </section>`;
+}
+
+function Story({best}) {
+  if (!best) return html`<div className="small">조건에 맞는 상품이 없습니다.</div>`;
+  const {r, sr, tp, qp} = best, {d, it, p, a, dl} = r;
+  const n = d.weeks.length, t0 = it.t0;
+  const wk = t => (t >= 0 && t < n) ? wkLabel(d.weeks[t]) : "—";
+  const first = sr.inf.events.find(e => e.type === "init" || e.type === "open") || sr.inf.events[0];
+  const end = Math.round(a.end), since = n - 1 - tp, gap = t0 - tp;
+  const when = gap >= 0 ? gap + "주 전" : (-gap) + "주 뒤";
+  const big = "발주종료 " + when + "에 " + nf(qp) + "개가 들어왔고, " + (since >= 52 ? "1년이 지나도 " : since + "주가 지나도 ") + nf(end) + "개가 남았습니다";
+  const steps = [
+    {k: "a", cls: "", w: wk(first.t), txt: first.type === "init" ? "출시 · 첫 입고 " + nf(first.q) + "개" : "시작 재고 " + nf(first.q) + "개(출처 모름)"},
+    {k: "b", cls: "hot", w: wk(tp), txt: "발주종료 " + when + " " + nf(qp) + "개 입고"},
+    {k: "c", cls: "", w: dl.act >= 0 ? wk(dl.act) + "~" : "", txt: dl.act >= 0 ? "할인 " + d.disp.length + "번" : "할인 없음"},
+    {k: "d", cls: "", w: wk(n - 1), txt: "아직 " + nf(end) + "개 남음"}
+  ];
+
+  // 그림: 주황=할인 주, 검은 선=실제 재고, 파란 선=규칙을 따랐을 때 재고
+  const W = 340, H = 130, PT = 10, PB = 22, PL = 6, PR = 6;
+  const cw = (W - PL - PR) / n;
+  const xl = t => PL + t * cw, xc = t => xl(t) + cw / 2;
+  const km = Math.max(1, ...d.stock.filter(v => v != null), ...p.stock.filter(v => v != null));
+  const yk = v => H - PB - (H - PB - PT) * Math.max(0, v) / km;
+  const path = (arr, from) => {
+    let pen = false; const segs = [];
+    arr.forEach((v, t) => { if (t < from || v == null) { pen = false; return; } segs.push((pen ? "L" : "M") + xc(t).toFixed(1) + "," + yk(v).toFixed(1)); pen = true; });
+    return segs.join(" ");
+  };
+  const polStock = p.stock.map((v, t) => t === t0 - 1 ? it.s0 : v);
+  return html`<div>
+    <div className="big">${big}</div>
+    <ol className="tl">${steps.map(s => html`<li key=${s.k} className=${s.cls}><b>${s.w}</b>${s.txt}</li>`)}</ol>
+    <div className="chart"><svg viewBox=${`0 0 ${W} ${H}`} width="100%" role="img" aria-label=${d.name + " 재고 그림"}>
+      ${d.disc.map((v, t) => (t < n && v > 0) ? html`<rect key=${"d" + t} x=${xl(t)} y=${PT} width=${cw} height=${H - PB - PT} fill="#FFF1E8"></rect>` : null)}
+      <line x1=${xc(t0)} x2=${xc(t0)} y1=${PT} y2=${H - PB} stroke="#B7791F" strokeDasharray="3 3"></line>
+      <text x=${xc(t0) + 3} y=${PT + 8} fontSize="10.5" fill="#B7791F" fontWeight="600">발주종료</text>
+      <path d=${path(d.stock, 0)} fill="none" stroke="#0F172A" strokeWidth="2"></path>
+      <path d=${path(polStock, t0 - 1)} fill="none" stroke="#2563EB" strokeWidth="2.4"></path>
+      ${p.term >= 0 ? html`<g><circle cx=${xc(p.term)} cy=${yk(0)} r="4" fill="#2563EB"></circle><text x=${xc(p.term) + 6} y=${yk(0) - 8} fontSize="11" fill="#1D4ED8" fontWeight="700">규칙: ${wk(p.term)} 정리</text></g>` : null}
+      <text x=${W - PR} y=${Math.max(PT + 12, yk(a.end) - 6)} fontSize="11" fill="#0F172A" fontWeight="700" textAnchor="end">실제: ${end}개 남음</text>
+      <text x=${PL} y=${H - 6} fontSize="10" fill="#94A3B8">${wk(0)}</text>
+      <text x=${W - PR} y=${H - 6} fontSize="10" fill="#94A3B8" textAnchor="end">${wk(n - 1)}</text>
+    </svg></div>
+    <div className="small">검은 선 = 실제 재고 · 파란 선 = 규칙을 따랐다면 · 주황 = 할인 기간</div>
+    <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>정책 설계에서 자세히 →</a>
+  </div>`;
+}
+
+function Card2({best}) {
+  return html`<section className="card q">
+    <div className="qn">질문 2 · 한 상품의 이야기${best ? " (" + best.r.d.name + ")" : ""}</div>
+    <${Story} best=${best} />
+  </section>`;
+}
+
+function Card3({sp}) {
+  return html`<section className="card q">
+    <div className="qn">질문 3 · 끝나기 직전에 들어온 물량은 어떻게 됐나</div>
+    <div className="big">발주종료 때 남은 재고의 ${sp.pct}%가 끝나기 직전에 들어온 물량</div>
+    <div className="small">그 물량(${nf(sp.tot)}개)의 결말</div>
+    <div className="stack"><i style=${{flex: sp.full, background: "#10B981"}}></i><i style=${{flex: sp.disc, background: "#F97316"}}></i><i style=${{flex: sp.left, background: "#B91C1C"}}></i></div>
+    <div className="sl">
+      <span><b style=${{background: "#10B981"}}></b>정상가로 팔림 ${sp.sh(sp.full)}%</span>
+      <span><b style=${{background: "#F97316"}}></b>할인해서 팔림 ${sp.sh(sp.disc)}%</span>
+      <span><b style=${{background: "#B91C1C"}}></b>끝내 남음 ${sp.sh(sp.left)}%</span>
+    </div>
+    <div className="note">가상 데이터라 비중은 예시입니다 · 오래된 입고부터 팔린다고 가정 · 입고는 재고·판매로 역산한 추정</div>
+  </section>`;
+}
+
+function App() {
+  const m = useMemo(compute, []);
+  const {P, A, T, G, S, best, sp} = m;
+  return html`<div className="app">
+    <header className="top">
+      <div className="brand">
+        <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h14M3 10h9M3 15h5"/><path d="M15 12l2 2-2 2"/></svg></div>
+        <div><div className="crumb">SCM 재고관리 · 한눈에 보기</div><h1>재고 처분 한눈에 보기</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="easy.html">한눈에 보기</a><a href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav>
+      </div>
+      <div className="topr"><div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div></div>
+    </header>
+    <div className="eq">
+      <${Card1} T=${T} S=${S} />
+      <${Card2} best=${best} />
+      <${Card3} sp=${sp} />
+    </div>
+    <div className="foot">
+      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과</div>
+      <div><a className="link" href="policy.html">정책 설계에서 바꿔 보기 →</a></div>
+      <div>${META.note || ""}</div>
+    </div>
+  </div>`;
+}
+
+const rootEl = document.getElementById("root");
+fetch("lifecycle.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(j => { META = j.meta || {}; ITEMS = j.items || []; if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
+  .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px Inter,sans-serif;color:#64748B">lifecycle.json을 읽지 못했습니다. 페이지와 같은 위치에 있는지 확인하세요. (' + e.message + ')</div>'; });
+</script>
+</body>
+</html>
