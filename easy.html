@@ -65,7 +65,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script src="policy.js"></script>
 <script src="source.js"></script>
 <script>
@@ -170,7 +170,8 @@ function initialName(rows, best) {
 function useChart(option) {
   const ref = useRef(null);
   useEffect(() => {
-    if (!window.echarts || !ref.current || !option) return;
+    if (!ref.current || !option) return;
+    if (!window.echarts) { ref.current.innerHTML = '<div style="height:100%;display:grid;place-items:center;color:#94A3B8;font-size:13px;text-align:center">그림을 불러오지 못했습니다(그림 라이브러리 차단·네트워크).<br/>새로고침하거나 다른 네트워크에서 열어 보세요.</div>'; return; }
     const c = echarts.init(ref.current, null, {renderer: "svg"});
     c.setOption(option);
     const onR = () => c.resize();
