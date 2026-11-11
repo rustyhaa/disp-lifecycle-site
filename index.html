@@ -28,7 +28,7 @@ h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .rule input[type=range]{width:140px;accent-color:var(--accent)}
 .rule b{min-width:42px;font-weight:600}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
+.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr 1fr;gap:16px}
 .kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
 .kl{font-size:13px;color:var(--mute);font-weight:500}
 .kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
@@ -68,7 +68,7 @@ tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .tip span{color:#94A3B8}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
 .legend span{display:flex;align-items:center;gap:6px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 .st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
 .st .l{font-size:12px;color:var(--mute)}
 .st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
@@ -144,17 +144,29 @@ const J = {
   "보류":      {fg:"#475569", bg:"#F1F3F6", dot:"#A3ABB8"}
 };
 const ORDER = ["반응","재고 소진","무반응","장기미해제","보류"];
-const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
+const man = v => (v < 0 ? "△" : "") + (Math.round(Math.abs(v)/1e4)).toLocaleString("ko-KR") + "만원";
+// 처분손(양수 = 손실)을 △로 표기. null이면 자료 없음, 0이면 0원
+const loss = v => { if (v == null) return "—"; const r = Math.round(v); if (r <= 0) return "0원"; return "△" + (r < 1e4 ? r.toLocaleString("ko-KR") + "원" : man(r)); };
 const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
 const firstGE = (ws, w) => { if (!w) return -1; for (let i=0;i<ws.length;i++) if (ws[i] >= w) return i; return -1; };
 
-function prep(RAW) { return RAW.map((d, i) => {
+function prep(RAW, LM) { return RAW.map((d, i) => {
   const si0 = firstGE(d.weeks, d.start), si = si0 < 0 ? d.weeks.length : si0;
   const ri0 = firstGE(d.weeks, d.rel);
   const n = d.weeks.length;
+  const ri = ri0 < 0 ? n : ri0;
   let so = -1; if (d.stock[si] != null && d.stock[si] > 0) for (let k=si;k<n;k++) if (d.stock[k] !== null && d.stock[k] <= 0) { so = k; break; }
   let di = -1; for (let k=si;k<n;k++) if (d.disc[k]) { di = k; break; }
-  return {...d, name: d.name || ("상품 " + String(i+1).padStart(2,"0")), si, ri: ri0 < 0 ? n : ri0, hasRel: ri0 >= 0, so, di, n, hs: (d.hist || []).map(h => { const a = firstGE(d.weeks, h.start), b = firstGE(d.weeks, h.end); return {...h, a: Math.max(0, a), b: b < 0 ? n : b}; })};
+  // 처분손: 처분 중(si~ri 직전) 주마다 max(0, 원가 − 세포함 판매 단가) × 판매 수량. 세포함 단가 = 판매가 × (1 − 할인율/100)
+  const pc = (LM && d.name && LM.get(d.name)) || null;
+  const price = pc && typeof pc.price === "number" ? pc.price : null;
+  const cost = pc && typeof pc.cost === "number" ? pc.cost : null;
+  let lossWon = null, lossWeeks = 0;
+  if (price != null && cost != null) {
+    lossWon = 0;
+    for (let k=si;k<ri;k++) { const gap = cost - price * (1 - ((d.disc && d.disc[k]) || 0)/100); if (gap > 0) { lossWon += gap * ((d.sale && d.sale[k]) || 0); lossWeeks++; } }
+  }
+  return {...d, name: d.name || ("상품 " + String(i+1).padStart(2,"0")), price, cost, lossWon, lossWeeks, si, ri, hasRel: ri0 >= 0, so, di, n, hs: (d.hist || []).map(h => { const a = firstGE(d.weeks, h.start), b = firstGE(d.weeks, h.end); return {...h, a: Math.max(0, a), b: b < 0 ? n : b}; })};
 }); }
 
 function judge(d, mult) {
@@ -285,6 +297,7 @@ function Detail({d, mult}) {
       <div className="st"><div className="l">처분 중 주평균</div><div className="v">${d.onQ.toFixed(1)}개</div><div className="s">${m == null ? "비교 불가" : m.toFixed(1) + "배"}</div></div>
       <div className="st"><div className="l">처분 중 순매출</div><div className="v">${man(d.onAmt)}</div><div className="s">${d.onW}주 합계</div></div>
       <div className="st"><div className="l">재고 금액</div><div className="v">${man(d.stkNowWon)}</div><div className="s">시작 ${man(d.stkStartWon)}</div></div>
+      <div className="st"><div className="l">처분손</div><div className="v" style=${{color: d.lossWon > 0 ? "#B42318" : undefined}}>${loss(d.lossWon)}</div><div className="s">${d.lossWon == null ? "원가 자료 없음" : d.lossWeeks + "주 원가 미만 판매"}</div></div>
     </div>
     <div className="lower">
       <div><div className="sec">경과</div><div className="tl">
@@ -305,7 +318,7 @@ function Criteria({mult}) {
              ["재고 소진", "배수는 기준 미만이지만 처분 시작 때 있던 재고가 마지막 주 0개"],
              ["무반응", "위 네 가지에 해당하지 않는 건"]];
   return html`<section className="card crit">
-    <div><div className="h">배수 판정 기준 <span style=${{fontWeight:500, color:"#94A3B8"}}>가상 설정값 · 위에서부터 차례로 적용</span></div>배수 = 처분 중 주평균 판매 ÷ 처분 전 주평균 판매. 처분 전은 직전 처분이 끝난 뒤(없으면 데이터 시작)부터 이번 시작 전까지, 처분 중은 시작부터 해제나 다음 처분 시작 전까지입니다. 이 배수가 정책 2단계 조건의 입력이 됩니다.</div>
+    <div><div className="h">배수 판정 기준 <span style=${{fontWeight:500, color:"#94A3B8"}}>가상 설정값 · 위에서부터 차례로 적용</span></div>배수 = 처분 중 주평균 판매 ÷ 처분 전 주평균 판매. 처분 전은 직전 처분이 끝난 뒤(없으면 데이터 시작)부터 이번 시작 전까지, 처분 중은 시작부터 해제나 다음 처분 시작 전까지입니다. 이 배수가 정책 2단계 조건의 입력이 됩니다.<div style=${{marginTop:6}}>처분손 = 처분 중 (원가 − 세포함 판매 단가)가 양수인 주의 차액 × 판매 수량 합계.</div></div>
     ${R.map(([j, t]) => html`<div key=${j}><div className="h"><i style=${{background:J[j].dot}}></i>${j}</div>${t}</div>`)}
   </section>`;
 }
@@ -324,6 +337,8 @@ function App() {
   const cur = ITEMS.find(d => d.name === sel) || ITEMS[0];
   const noresp = rows.filter(r => r.j === "무반응");
   const total = rows.length;
+  const lossKnown = rows.some(r => r.d.lossWon != null);
+  const lossTotal = rows.reduce((a,r)=>a+(r.d.lossWon||0),0);
   return html`<div className="app">
     <header className="top">
       <div className="brand">
@@ -351,6 +366,7 @@ function App() {
       <div className="card kpi"><div className="kl">반응률</div><div className="kv" style=${{color:J["반응"].fg}}>${Math.round(cnt("반응")/Math.max(1,total-cnt("보류"))*100)}<small>%</small></div><div className="ks">보류 제외 · 배수 ${mult.toFixed(1)}배 이상 · 재고 소진 ${cnt("재고 소진")}건 별도</div></div>
       <div className="card kpi"><div className="kl">무반응 남은 재고</div><div className="kv" style=${{color:J["무반응"].fg}}>${man(noresp.reduce((a,r)=>a+r.d.stkNowWon,0))}</div><div className="ks">${noresp.length}건 · 처분 방식 재검토 대상</div></div>
       <div className="card kpi"><div className="kl">처분 중 순매출</div><div className="kv">${man(rows.reduce((a,r)=>a+r.d.onAmt,0))}</div><div className="ks">시작 시점 재고 ${man(rows.reduce((a,r)=>a+r.d.stkStartWon,0))}</div></div>
+      <div className="card kpi"><div className="kl">처분손 (원가 미만 판매)</div><div className="kv" style=${{color: lossTotal > 0 ? "#B42318" : undefined}}>${lossKnown ? (lossTotal <= 0 ? "0만원" : "△" + man(lossTotal)) : "—"}</div><div className="ks">${lossKnown ? "처분 중 판매가가 원가보다 낮았던 차액 합계 · 세포함 순매출 기준 · 가상 데이터" : "원가 자료(lifecycle.json) 없음 · 가상 데이터"}</div></div>
     </section>
 
     <div className="main">
@@ -360,7 +376,7 @@ function App() {
           <input className="search" placeholder="상품·유형 검색" value=${q} onChange=${e=>{setQ(e.target.value);setPg(0);}} />
         </div>
         <div className="tw"><table>
-          <thead><tr><th style=${{paddingLeft:18}}>상품</th><th>기간</th><th className="num">주평균 판매</th><th className="num">배수</th><th>추이</th><th className="num">시작 재고</th><th style=${{paddingRight:18}}>판정</th></tr></thead>
+          <thead><tr><th style=${{paddingLeft:18}}>상품</th><th>기간</th><th className="num">주평균 판매</th><th className="num">배수</th><th>추이</th><th className="num">시작 재고</th><th className="num">처분손</th><th style=${{paddingRight:18}}>판정</th></tr></thead>
           <tbody>${view.map(({d,j}) => { const m = d.preQ > 0 && j !== "보류" ? d.onQ/d.preQ : null; return html`<tr key=${d.name} className=${"r" + (d.name===sel?" sel":"")} onClick=${()=>setSel(d.name)}>
             <td style=${{paddingLeft:18}}><div className="pn">${d.name}${d.nEv > 1 ? html`<span className="tag">재처분 ${d.nEv}회차</span>` : null}</div><div className="pk">${d.kind}</div></td>
             <td style=${{color:"#475569"}}>${wkLabel(d.start)}<span className="arrow">→</span>${d.rel ? wkLabel(d.rel) : html`<span style=${{color:"#94A3B8"}}>진행 중</span>`}</td>
@@ -368,6 +384,7 @@ function App() {
             <td className="num mult" style=${{color: m == null ? "#CBD2DC" : m >= mult ? J["반응"].fg : "#334155"}}>${m == null ? "—" : m.toFixed(1) + "×"}</td>
             <td><${Spark} d=${d} /></td>
             <td className="num">${man(d.stkStartWon)}</td>
+            <td className="num" style=${{color: d.lossWon > 0 ? "#B42318" : "#94A3B8"}}>${loss(d.lossWon)}</td>
             <td style=${{paddingRight:18}}><${Pill} j=${j} /></td>
           </tr>`; })}</tbody>
         </table></div>
@@ -379,8 +396,13 @@ function App() {
   </div>`;
 }
 const rootEl = document.getElementById("root");
-(window.DISP_DATA ? Promise.resolve(window.DISP_DATA) : fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
-  .then(j => { META = j.meta || {}; ITEMS = prep(j.items || []); if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
+const noLife = {items: []};
+const useInline = !!window.DISP_DATA;
+(useInline ? Promise.resolve([window.DISP_DATA, null]) : Promise.all([
+  fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch("lifecycle.json").then(r => r.ok ? r.json() : noLife).catch(() => noLife)
+]))
+  .then(([j, L]) => { META = j.meta || {}; const LM = new Map(); if (L) ((L.items) || []).forEach(it => { if (it && it.name) LM.set(it.name, {price: it.price, cost: it.cost}); }); ITEMS = prep(j.items || [], L ? LM : null); if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
   .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px "Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;color:#64748B">data.json을 읽지 못했습니다. 페이지와 같은 위치에 data.json이 있는지 확인하세요. (' + e.message + ')</div>'; });
 </script>
 </body>
