@@ -173,7 +173,7 @@ const {useState, useMemo, useRef} = React;
 const html = htm.bind(React.createElement);
 const M = window.DispPolicy, RG = M.RANGES;
 const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
-const manS = v => (v > 0 ? "+" : v < 0 ? "−" : "") + (Math.round(Math.abs(v)/1e4)).toLocaleString("ko-KR") + "만원";
+const manS = v => (v > 0 ? "+" : v < 0 ? "△" : "") + (Math.round(Math.abs(v)/1e4)).toLocaleString("ko-KR") + "만원";
 const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
 const fmt = (k, v) => (RG[k].step < 1 ? v.toFixed(1) : String(v)) + RG[k].unit;
 const STAGE_C = {0:"transparent", 1:"#93B4FB", 2:"#3B6CF6", 3:"#B91C1C"};
@@ -317,7 +317,7 @@ function Walk({R, sel, setSel, P}) {
 
 // ③ 민감도: 값 하나를 움직이며 실제 대비 차이가 어떻게 바뀌는지, 어디서 결론이 뒤집히는지
 const SENS_KEYS = ["X", "d1", "N", "Y", "d2", "Z", "r30", "r50", "loss"];
-const METRIC = {dTotal: {t: "손실 차이", f: v => manS(v), z: true}, dClear: {t: "정리 주수 차이", f: v => (v > 0 ? "+" : "") + v.toFixed(1) + "주", z: true}, terms: {t: "종료 심사 상품 수", f: v => v + "개", z: false}};
+const METRIC = {dTotal: {t: "손실 차이", f: v => manS(v), z: true}, dClear: {t: "정리 주수 차이", f: v => (v > 0 ? "+" : v < 0 ? "△" : "") + Math.abs(v).toFixed(1) + "주", z: true}, terms: {t: "종료 심사 상품 수", f: v => v + "개", z: false}};
 function Sens({P, A}) {
   const [key, setKey] = useState("loss"), [met, setMet] = useState("dTotal");
   const pts = useMemo(() => M.sweep(ITEMS, P, A, key, M.steps(key)), [P, A, key]);
@@ -410,8 +410,8 @@ function ResultCard({T}) {
     <div style=${{fontSize:12,color:"#94A3B8",fontWeight:600}}>이 규칙이면</div>
     <div style=${{fontSize:20,fontWeight:700,letterSpacing:"-.02em",lineHeight:1.35}}>${clear + " · " + space + " · " + loss + " (추정)"}</div>
     <div className="rc-grid">
-      ${box("정리 기간", (T.dClear > 0 ? "+" : T.dClear < 0 ? "−" : "") + Math.abs(T.dClear).toFixed(1) + "주")}
-      ${box("공간(파레트·주)", (T.dPW > 0 ? "+" : "−") + Math.abs(T.dPW).toFixed(1))}
+      ${box("정리 기간", (T.dClear > 0 ? "+" : T.dClear < 0 ? "△" : "") + Math.abs(T.dClear).toFixed(1) + "주")}
+      ${box("공간(파레트·주)", (T.dPW > 0 ? "+" : T.dPW < 0 ? "△" : "") + Math.abs(T.dPW).toFixed(1))}
       ${box("손실(추정)", manS(T.dTotal))}
       ${box("정리 심사로 넘김", T.terms + "개")}
     </div>
