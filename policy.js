@@ -145,7 +145,8 @@
       if (dl.trig >= 0 && (dl.act < 0 || dl.lag > TOL)) ex.push("late");
       if (dl.act >= 0 && dl.trig < 0) ex.push("early");
       if (p.term >= 0 && !(a.sold >= 0 && a.sold <= p.term)) ex.push("term");
-      return { d: d, it: it, scope: true, p: p, a: a, dl: dl, ex: ex };
+      return { d: d, it: it, scope: true, p: p, a: a, dl: dl, ex: ex,
+               aPW: palletWeeks(d, it, d.stock), pPW: palletWeeks(d, it, p.stock) };
     });
     var S = rows.filter(function (r) { return r.scope; });
     var hz = function (r, c) { return (c >= 0 ? c : r.it.n) - r.it.t0; };   // 정리까지 걸린 주(기간 안 미정리는 기간 끝으로 자름)
@@ -161,6 +162,9 @@
       lagN: S.filter(function (r) { return r.dl.lag != null; }).length
     };
     T.dTotal = T.pTotal - T.aTotal; T.dEndWon = T.pEndWon - T.aEndWon; T.dClear = T.pClear - T.aClear;
+    T.aPW = sum(S.map(function (r) { return r.aPW; })); T.pPW = sum(S.map(function (r) { return r.pPW; }));
+    T.dPW = T.pPW - T.aPW; T.dPWpct = T.aPW > 0 ? T.dPW / T.aPW * 100 : 0;
+    T.aPal0 = sum(S.map(function (r) { return pallets(r.d, r.it.s0); }));   // 발주종료 시점 실제 재고의 파레트 수
     return { rows: rows, T: T };
   }
 
@@ -184,7 +188,7 @@
 
   /* 설정값 없는 화면(한눈에 보기)용: 문장마다 가정 격자를 돌려 등급을 붙인다. 화면 문장은 전부 이 함수가 만든다(손으로 친 숫자 없음). */
   var GRID = { r30: [1.0, 1.3, 1.6, 2.0, 2.5], r50: [1.0, 1.6, 2.2, 3.0], loss: [0, 30, 60, 80, 100] };  // r50 >= r30 조합만 → 65개
-  var FLAT = { dTotal: 50000, dClear: 0.5 };   // |v| < FLAT 이면 "차이 거의 없음"
+  var FLAT = { dTotal: 50000, dClear: 0.5, dPW: 0.5 };   // |v| < FLAT 이면 "차이 거의 없음" (dPW: 파레트·주)
 
   function tally() { return { neg: 0, pos: 0, flat: 0, min: Infinity, max: -Infinity }; }
   function addTo(t, v, f) {
@@ -194,7 +198,7 @@
   }
   // 격자 전 조합의 실제 대비 차이를 모은다
   function robust(items, P) {
-    var G = { n: 0, dClear: tally(), dTotal: tally() };
+    var G = { n: 0, dClear: tally(), dTotal: tally(), dPW: tally() };
     GRID.r30.forEach(function (r30) {
       GRID.r50.forEach(function (r50) {
         if (r50 < r30) return;
@@ -203,6 +207,7 @@
           G.n++;
           addTo(G.dClear, T.dClear, FLAT.dClear);
           addTo(G.dTotal, T.dTotal, FLAT.dTotal);
+          addTo(G.dPW, T.dPW, FLAT.dPW);
         });
       });
     });
@@ -258,9 +263,15 @@
     else if (lg === "same-pos") { lt = "손실이 늘어납니다"; lb = "어떤 가정에서도 같은 방향"; }
     else if (lg === "flat") { lt = "손실은 거의 같습니다"; lb = "어떤 가정에서도 차이 거의 없음"; }
     else { lt = "손실은 가정에 따라 달라집니다"; lb = G.n + "가지 가정 중 " + G.dTotal.neg + "가지에서 줄고 " + G.dTotal.pos + "가지에서 늘어남"; }
+    var sg = grade(G.dPW, G.n), st, sb;
+    if (sg === "same-neg") { st = "재고가 차지한 공간이 " + Math.round(-T.dPWpct) + "% 줄어듭니다"; sb = "어떤 가정에서도 같은 방향 · 파레트·주 기준"; }
+    else if (sg === "same-pos") { st = "재고가 차지한 공간이 " + Math.round(T.dPWpct) + "% 늘어납니다"; sb = "어떤 가정에서도 같은 방향 · 파레트·주 기준"; }
+    else if (sg === "flat") { st = "재고가 차지한 공간은 거의 같습니다"; sb = "어떤 가정에서도 차이 거의 없음"; }
+    else { st = "재고가 차지한 공간은 가정에 따라 달라집니다"; sb = G.n + "가지 가정 중 " + G.dPW.neg + "가지에서 줄고 " + G.dPW.pos + "가지에서 늘어남"; }
     return {
       clear: { grade: cg, text: ct, badge: cb },
       loss: { grade: lg, text: lt, badge: lb },
+      space: { grade: sg, text: st, badge: sb },
       flips: F.map(function (f) {
         var r = RANGES[f.k], vs = r.step < 1 ? f.v.toFixed(1) : String(Math.round(f.v));
         return { k: f.k, text: FLIP_LABEL[f.k] + " " + vs + r.unit + (f.dir === "down" ? " 미만" : " 초과"), assume: !!r.assume };
@@ -268,9 +279,33 @@
     };
   }
 
+  /* 부피(가상 설정): 분류별 상품 1개 부피(L)와 박스 입수로 개수 → 박스(올림) → CBM → 파레트를 역산한다. 파레트는 KS 표준 T11(1.1m×1.1m), 적재 높이·적재 효율은 가상 설정. 파레트·주 = 매주 남은 재고의 파레트 수 합계(얼마나 많이 × 얼마나 오래 차지했나). */
+  var VOLUME = {
+    "가공식품": { unitL: 0.8, perBox: 24 },
+    "과자":     { unitL: 1.5, perBox: 20 },
+    "음료":     { unitL: 1.6, perBox: 12 },
+    "생활용품": { unitL: 3.0, perBox: 12 },
+    "주방용품": { unitL: 6.0, perBox: 6 },
+    "냉동식품": { unitL: 1.2, perBox: 20 },
+    "_default": { unitL: 2.0, perBox: 12 }
+  };
+  var PALLET = { w: 1.1, d: 1.1, h: 1.5, eff: 0.8 };   // m, m, m(가상), 적재 효율(가상)
+  function palletCbm() { return PALLET.w * PALLET.d * PALLET.h * PALLET.eff; }   // 1.452
+  function volOf(d) { return VOLUME[d.cat] || VOLUME._default; }
+  function boxCbm(d) { var v = volOf(d); return v.unitL * v.perBox / 1000; }
+  function pallets(d, units) { if (!units || units <= 0) return 0; var v = volOf(d); return Math.ceil(units / v.perBox) * boxCbm(d) / palletCbm(); }   // 박스는 올림, 파레트는 부피 합(소수)
+  function palletsRaw(d, units) { if (!units || units <= 0) return 0; return units * volOf(d).unitL / 1000 / palletCbm(); }   // 흐름도용(박스 올림 없음)
+  // 발주종료 주(t0)부터 끝까지 주별 재고의 파레트 수 합계(빈 주는 0)
+  function palletWeeks(d, it, stockArr) {
+    var s = 0;
+    for (var t = it.t0; t < it.n; t++) if (stockArr[t] != null) s += pallets(d, stockArr[t]);
+    return s;
+  }
+
   var API = { K: K, TRAIL: TRAIL, TOL: TOL, DEFAULT_POLICY: DEFAULT_POLICY, DEFAULT_ASSUME: DEFAULT_ASSUME, RANGES: RANGES,
               lift: lift, baseDemand: baseDemand, prepItem: prepItem, simulate: simulate, actual: actual, delay: delay,
               runAll: runAll, sweep: sweep, steps: steps, load: load, save: save,
-              GRID: GRID, FLAT: FLAT, robust: robust, grade: grade, flips: flips, sentences: sentences, FLIP_LABEL: FLIP_LABEL };
+              GRID: GRID, FLAT: FLAT, robust: robust, grade: grade, flips: flips, sentences: sentences, FLIP_LABEL: FLIP_LABEL,
+              VOLUME: VOLUME, PALLET: PALLET, palletCbm: palletCbm, volOf: volOf, boxCbm: boxCbm, pallets: pallets, palletsRaw: palletsRaw };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.DispPolicy = API;
 })(typeof window !== "undefined" ? window : globalThis);
