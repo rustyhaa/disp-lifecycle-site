@@ -290,6 +290,7 @@
     "_default": { unitL: 2.0, perBox: 12 }
   };
   var PALLET = { w: 1.1, d: 1.1, h: 1.5, eff: 0.8 };   // m, m, m(가상), 적재 효율(가상)
+  var STORES = 100;   // 전 점포 환산용 가상 점포 수(가상 설정): 가상 점포 1곳의 결과에 그대로 곱한다(점포 간 차이 무시)
   function palletCbm() { return PALLET.w * PALLET.d * PALLET.h * PALLET.eff; }   // 1.452
   function volOf(d) { return VOLUME[d.cat] || VOLUME._default; }
   function boxCbm(d) { var v = volOf(d); return v.unitL * v.perBox / 1000; }
@@ -306,6 +307,6 @@
               lift: lift, baseDemand: baseDemand, prepItem: prepItem, simulate: simulate, actual: actual, delay: delay,
               runAll: runAll, sweep: sweep, steps: steps, load: load, save: save,
               GRID: GRID, FLAT: FLAT, robust: robust, grade: grade, flips: flips, sentences: sentences, FLIP_LABEL: FLIP_LABEL,
-              VOLUME: VOLUME, PALLET: PALLET, palletCbm: palletCbm, volOf: volOf, boxCbm: boxCbm, pallets: pallets, palletsRaw: palletsRaw };
+              VOLUME: VOLUME, PALLET: PALLET, STORES: STORES, palletCbm: palletCbm, volOf: volOf, boxCbm: boxCbm, pallets: pallets, palletsRaw: palletsRaw };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.DispPolicy = API;
 })(typeof window !== "undefined" ? window : globalThis);
