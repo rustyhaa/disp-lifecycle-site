@@ -405,11 +405,11 @@ function App() {
       <div className="brand">
         <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h14M3 10h9M3 15h5"/><path d="M15 12l2 2-2 2"/></svg></div>
         <div><div className="crumb">SCM 재고관리 · 처분 정책</div><h1>처분 정책 시뮬레이터</h1></div>
-        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="policy.html">정책 시뮬레이터</a><a href="index.html">입력 확인</a><a href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a></nav>
+        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="policy.html">정책 시뮬레이터</a><a href="index.html">입력 확인</a><a href="lifecycle.html">상품 생애주기</a><a href="story.html">설계 이야기</a><a href="guide.html">사용설명서</a></nav>
       </div>
       <div className="topr"><div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div></div>
     </header>
-    <div className="warnbar"><b>상품을 하나씩 결정하는 화면이 아니라, 규칙을 바꿔 보고 결과가 어떻게 달라지는지 미리 보는 화면입니다.</b>
+    <div className="warnbar"><a href="guide.html#five" style=${{display:"inline-flex",alignItems:"center",height:28,padding:"0 12px",borderRadius:8,background:"#0F172A",color:"#fff",fontWeight:700,textDecoration:"none",whiteSpace:"nowrap"}}>처음이면 사용설명서 →</a><b>상품을 하나씩 결정하는 화면이 아니라, 규칙을 바꿔 보고 결과가 어떻게 달라지는지 미리 보는 화면입니다.</b>
       <span>가상 데이터 · 판매 반응은 가정 · 숫자는 실적이 아니라 실제 경과와의 차이를 보기 위한 추정 · <a href="story.html" style=${{color:"#7A5300",fontWeight:600}}>왜 이렇게 만들었나 →</a></span></div>
     <div className="layout">
       <${Panel} P=${P} A=${A} setP=${setP} setA=${setA} reset=${reset} />
