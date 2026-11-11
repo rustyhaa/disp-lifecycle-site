@@ -155,7 +155,7 @@ const J = {
 const ORDER = ["종료 지연","신상품 부진","운영 중","신상품 진행","정리 완료"];
 // 단계 값은 가상 코드: 1 신상품 · 2 정상 · 3 발주종료 · 4 판매종료
 const STG = {1:{t:"신상품", c:"#A78BFA"}, 2:{t:"정상", c:"#34D399"}, 3:{t:"발주종료", c:"#FBBF24"}, 4:{t:"판매종료", c:"#CBD2DC"}};
-const DJ = {"반응":{fg:"#1D4ED8",bg:"#EEF3FF",dot:"#3B6CF6"},"무반응":{fg:"#C2410C",bg:"#FFF1E8",dot:"#F26B2A"},"장기미해제":{fg:"#8A5A00",bg:"#FBF3DE",dot:"#D49B1F"},"보류":{fg:"#475569",bg:"#F1F3F6",dot:"#A3ABB8"}};
+const DJ = {"반응":{fg:"#1D4ED8",bg:"#EEF3FF",dot:"#3B6CF6"},"재고 소진":{fg:"#047857",bg:"#E7F7EF",dot:"#10B981"},"무반응":{fg:"#C2410C",bg:"#FFF1E8",dot:"#F26B2A"},"장기미해제":{fg:"#8A5A00",bg:"#FBF3DE",dot:"#D49B1F"},"보류":{fg:"#475569",bg:"#F1F3F6",dot:"#A3ABB8"}};
 const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
 const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
 const idx = (ws, w) => w ? ws.indexOf(w) : -1;
@@ -191,7 +191,8 @@ function judge(d, lim) {
 function djudge(x) {
   if (x.onW < 4 || x.preQ < 0.5) return "보류";
   if (!x.rel && x.onW >= 24) return "장기미해제";
-  if (x.onQ >= 1.5*x.preQ || (x.stk0 > 0 && x.stkEnd <= 0)) return "반응";
+  if (x.onQ >= 1.5*x.preQ) return "반응";
+  if (x.stk0 > 0 && x.stkEnd <= 0) return "재고 소진";
   return "무반응";
 }
 function Pill({j, P}) { const c = (P||J)[j]; return html`<span className="pill" style=${{color:c.fg, background:c.bg}}><i style=${{background:c.dot}}></i>${j}</span>`; }
@@ -415,7 +416,7 @@ function App() {
       <div className="brand">
         <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 14c3 0 3-9 6-9s3 6 6 6 2-3 4-3"/></svg></div>
         <div><div className="crumb">SCM 재고관리 · 상품 진단</div><h1>상품 생애주기</h1></div>
-        <nav className="nav" style=${{marginLeft:18}}><a href="easy.html">한눈에 보기</a><a className="on" href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav><span style=${{fontSize:"12.5px",color:"var(--mute)"}}>· 상품 생애주기</span>
+        <nav className="nav" style=${{marginLeft:18}}><a href="easy.html">한눈에 보기</a><a className="on" href="index.html">처분 진단</a><a href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav><span style=${{fontSize:"12.5px",color:"var(--mute)"}}>· 상품 생애주기</span>
       </div>
       <div className="topr">
         <div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div>

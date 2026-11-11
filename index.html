@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>처분 반응 배수 확인</title>
+<title>처분 진단</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <style>
 <style>
@@ -99,7 +99,7 @@ tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
 @media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
-.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
+.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(5,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
 .crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
 .crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
 .tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
@@ -140,9 +140,10 @@ const J = {
   "반응":      {fg:"#1D4ED8", bg:"#EEF3FF", dot:"#3B6CF6"},
   "무반응":    {fg:"#C2410C", bg:"#FFF1E8", dot:"#F26B2A"},
   "장기미해제":{fg:"#8A5A00", bg:"#FBF3DE", dot:"#D49B1F"},
+  "재고 소진": {fg:"#047857", bg:"#E7F7EF", dot:"#10B981"},
   "보류":      {fg:"#475569", bg:"#F1F3F6", dot:"#A3ABB8"}
 };
-const ORDER = ["반응","무반응","장기미해제","보류"];
+const ORDER = ["반응","재고 소진","무반응","장기미해제","보류"];
 const man = v => (Math.round(v/1e4)).toLocaleString("ko-KR") + "만원";
 const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
 const firstGE = (ws, w) => { if (!w) return -1; for (let i=0;i<ws.length;i++) if (ws[i] >= w) return i; return -1; };
@@ -160,7 +161,8 @@ function judge(d, mult) {
   if (d.onW < 4 || d.preQ < 0.5) return "보류";
   if (!d.rel && d.onW >= 24) return "장기미해제";
   const ls = d.stock.filter(v => v !== null).pop(); const sold = d.so >= 0 && ls !== undefined && ls <= 0;
-  if (d.onQ >= mult * d.preQ || sold) return "반응";
+  if (d.onQ >= mult * d.preQ) return "반응";
+  if (sold) return "재고 소진";
   return "무반응";
 }
 
@@ -299,8 +301,9 @@ function Detail({d, mult}) {
 function Criteria({mult}) {
   const R = [["보류", "처분 중 4주 미만이거나 처분 전 주평균 0.5개 미만. 비교할 근거가 부족한 건"],
              ["장기미해제", "해제 기록 없이 처분 중 24주 이상"],
-             ["반응", "배수 " + mult.toFixed(1) + "배 이상이거나, 처분 시작 때 있던 재고가 마지막 주 0개"],
-             ["무반응", "위 세 가지에 해당하지 않는 건"]];
+             ["반응", "배수 " + mult.toFixed(1) + "배 이상"],
+             ["재고 소진", "배수는 기준 미만이지만 처분 시작 때 있던 재고가 마지막 주 0개"],
+             ["무반응", "위 네 가지에 해당하지 않는 건"]];
   return html`<section className="card crit">
     <div><div className="h">배수 판정 기준 <span style=${{fontWeight:500, color:"#94A3B8"}}>가상 설정값 · 위에서부터 차례로 적용</span></div>배수 = 처분 중 주평균 판매 ÷ 처분 전 주평균 판매. 처분 전은 직전 처분이 끝난 뒤(없으면 데이터 시작)부터 이번 시작 전까지, 처분 중은 시작부터 해제나 다음 처분 시작 전까지입니다. 이 배수가 정책 2단계 조건의 입력이 됩니다.</div>
     ${R.map(([j, t]) => html`<div key=${j}><div className="h"><i style=${{background:J[j].dot}}></i>${j}</div>${t}</div>`)}
@@ -325,8 +328,8 @@ function App() {
     <header className="top">
       <div className="brand">
         <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 15 L7 9 L11 12 L18 4"/><path d="M13 4h5v5"/></svg></div>
-        <div><div className="crumb">SCM 재고관리 · 정책 입력 확인</div><h1>처분 반응 배수 확인</h1></div>
-        <nav className="nav" style=${{marginLeft:18}}><a href="easy.html">한눈에 보기</a><a className="on" href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav><span style=${{fontSize:"12.5px",color:"var(--mute)"}}>· 입력 확인</span>
+        <div><div className="crumb">SCM 재고관리 · 처분 진단</div><h1>처분 진단</h1></div>
+        <nav className="nav" style=${{marginLeft:18}}><a href="easy.html">한눈에 보기</a><a className="on" href="index.html">처분 진단</a><a href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav>
       </div>
       <div className="topr">
         <div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} · 정적 시연(갱신 없음)</div>
@@ -334,7 +337,7 @@ function App() {
       </div>
     </header>
     <section className="cta"><div><div className="ct">처음이면 한눈에 보기부터</div>
-      <div className="cs">설정값 없이 결론만 보는 화면과, 규칙을 직접 바꿔 보는 화면이 있습니다. 이 화면은 정책에 들어가는 배수를 확인하는 곳입니다. · 가상 데이터</div></div>
+      <div className="cs">설정값 없이 결론만 보는 화면과, 규칙을 직접 바꿔 보는 화면이 있습니다. 이 화면은 처분 건별 판매 변화(배수)를 보는 곳이며, 배수는 정책 2단계 조건의 입력이 됩니다. · 가상 데이터</div></div>
       <div style=${{display:"flex",gap:"8px",flexWrap:"wrap"}}><a href="easy.html">한눈에 보기 →</a><a className="ol" href="policy.html" style=${{background:"transparent",color:"#fff",border:"1px solid rgba(255,255,255,.5)"}}>정책 설계 →</a></div></section>
     <${Criteria} mult=${mult} />
 
@@ -345,7 +348,7 @@ function App() {
         <div className="dist">${ORDER.map(j => cnt(j) ? html`<div key=${j} style=${{flex:cnt(j), background:J[j].dot}}></div>` : null)}</div>
         <div className="leg">${ORDER.map(j => html`<span key=${j}><i style=${{background:J[j].dot}}></i>${j} ${cnt(j)}</span>`)}</div>
       </div>
-      <div className="card kpi"><div className="kl">반응률</div><div className="kv" style=${{color:J["반응"].fg}}>${Math.round(cnt("반응")/Math.max(1,total-cnt("보류"))*100)}<small>%</small></div><div className="ks">보류 제외 · 기준 ${mult.toFixed(1)}배 또는 재고 소진</div></div>
+      <div className="card kpi"><div className="kl">반응률</div><div className="kv" style=${{color:J["반응"].fg}}>${Math.round(cnt("반응")/Math.max(1,total-cnt("보류"))*100)}<small>%</small></div><div className="ks">보류 제외 · 배수 ${mult.toFixed(1)}배 이상 · 재고 소진 ${cnt("재고 소진")}건 별도</div></div>
       <div className="card kpi"><div className="kl">무반응 남은 재고</div><div className="kv" style=${{color:J["무반응"].fg}}>${man(noresp.reduce((a,r)=>a+r.d.stkNowWon,0))}</div><div className="ks">${noresp.length}건 · 처분 방식 재검토 대상</div></div>
       <div className="card kpi"><div className="kl">처분 중 순매출</div><div className="kv">${man(rows.reduce((a,r)=>a+r.d.onAmt,0))}</div><div className="ks">시작 시점 재고 ${man(rows.reduce((a,r)=>a+r.d.stkStartWon,0))}</div></div>
     </section>
@@ -362,7 +365,7 @@ function App() {
             <td style=${{paddingLeft:18}}><div className="pn">${d.name}${d.nEv > 1 ? html`<span className="tag">재처분 ${d.nEv}회차</span>` : null}</div><div className="pk">${d.kind}</div></td>
             <td style=${{color:"#475569"}}>${wkLabel(d.start)}<span className="arrow">→</span>${d.rel ? wkLabel(d.rel) : html`<span style=${{color:"#94A3B8"}}>진행 중</span>`}</td>
             <td className="num"><span style=${{color:"#94A3B8"}}>${d.preQ.toFixed(1)}</span><span className="arrow">→</span><b style=${{fontWeight:600}}>${d.onQ.toFixed(1)}</b></td>
-            <td className="num mult" style=${{color: m == null ? "#CBD2DC" : m >= mult ? J["반응"].fg : "#334155"}}>${m == null ? "—" : m.toFixed(1) + "×"}${j === "반응" && m != null && m < mult ? html`<div style=${{fontSize:11,fontWeight:500,color:"#94A3B8"}}>재고 소진</div>` : null}</td>
+            <td className="num mult" style=${{color: m == null ? "#CBD2DC" : m >= mult ? J["반응"].fg : "#334155"}}>${m == null ? "—" : m.toFixed(1) + "×"}</td>
             <td><${Spark} d=${d} /></td>
             <td className="num">${man(d.stkStartWon)}</td>
             <td style=${{paddingRight:18}}><${Pill} j=${j} /></td>
