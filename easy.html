@@ -13,286 +13,444 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
-button,input{font:inherit;color:inherit}
+button,select{font:inherit;color:inherit}
 .app{max-width:1560px;margin:0 auto;padding-block:18px 14px;padding-left:max(clamp(16px,2vw,32px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,2vw,32px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:24px}
-.brand{display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3B6CF6,#1E3A8A);display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(59,108,246,.6)}
 .crumb{font-size:12px;color:var(--mute);font-weight:500;letter-spacing:.02em}
 h1{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .topr{display:flex;align-items:center;gap:12px}
 .stamp{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
 .live{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 0 3px #D1FAE5}
-.rule{display:flex;align-items:center;gap:12px;height:40px;padding:0 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px}
-.rule input[type=range]{width:140px;accent-color:var(--accent)}
-.rule b{min-width:42px;font-weight:600}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.kpis{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:16px}
-.kpi{padding:14px 18px;display:flex;flex-direction:column;gap:5px}
-.kl{font-size:13px;color:var(--mute);font-weight:500}
-.kv{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
-.kv small{font-size:15px;font-weight:600;color:var(--mute);margin-left:3px}
-.ks{font-size:12px;color:var(--mute)}
-.dist{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-top:4px}
-.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
-.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
-.main{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px;align-items:start}
-.listhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px}
-.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2)}
-.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer;display:flex;align-items:center;gap:6px}
-.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
-.seg .n{font-size:11px;color:var(--faint);font-weight:500}
-.search{height:34px;width:180px;border:1px solid var(--line);border-radius:9px;padding:0 12px 0 32px;font-size:13px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3 3'/%3E%3C/svg%3E") no-repeat 11px center}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:11.5px;font-weight:500;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:6px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
-tr.r{cursor:pointer;transition:background .12s}
-tr.r:hover{background:#F8FAFC}
-tr.r.sel{background:var(--accent-soft)}
-tr.r.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-.num{text-align:right}
-.pn{font-weight:600}
-.pk{font-size:11.5px;color:var(--mute);margin-top:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
-.arrow{color:var(--faint);margin:0 4px}
-.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600}
-.pill i{width:6px;height:6px;border-radius:50%}
-.mult{font-weight:600}
-.det{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
-.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.dt{font-size:20px;font-weight:700;letter-spacing:-.02em}
-.dm{font-size:13px;color:var(--mute);margin-top:4px}
-.chartwrap{position:relative}
-.tip{position:absolute;pointer-events:none;background:#0F172A;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px -8px rgba(15,23,42,.5);white-space:nowrap;transform:translate(-50%,-100%)}
-.tip b{font-weight:600}
-.tip span{color:#94A3B8}
-.legend{display:flex;gap:16px;font-size:12px;color:var(--mute)}
-.legend span{display:flex;align-items:center;gap:6px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.st{background:#F8FAFC;border:1px solid var(--line2);border-radius:12px;padding:9px 12px}
-.st .l{font-size:12px;color:var(--mute)}
-.st .v{font-size:17px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
-.st .s{font-size:11.5px;color:var(--mute);margin-top:2px}
-.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.sec{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px}
-.tl{display:flex;flex-direction:column;gap:0}
-.ev{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding-bottom:7px;position:relative}
-.ev:not(:last-child):before{content:"";position:absolute;left:8px;top:16px;bottom:0;width:2px;background:var(--line2)}
-.ev .d{width:10px;height:10px;border-radius:50%;margin:4px 0 0 4px;border:2px solid #fff;box-shadow:0 0 0 1.5px currentColor}
-.ev .t{font-size:13px;font-weight:600}
-.ev .x{font-size:12px;color:var(--mute)}
-.ev .w{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.field label{font-size:12px;color:var(--mute)}
-.field input{height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;background:#fff}
-.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.save{height:36px;width:100%;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
-.foot{font-size:12px;color:var(--faint);line-height:1.6}
-.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;font-size:12.5px;color:var(--mute)}
-.pager div{display:flex;gap:6px}
-.pager button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer}
-.pager button:disabled{color:var(--faint);cursor:default;background:var(--line2)}
-.tw{overflow-x:auto}
-.tw table{min-width:640px}
-.save.ok{background:#047857}
-.save.bad{background:#B91C1C}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:1fr 1fr}.top,.topr,.listhead{flex-wrap:wrap}.stamp,.rule{height:auto;min-height:40px;padding-block:6px;flex-wrap:wrap}}
-@media (max-width:560px){.kpis{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}.lower{grid-template-columns:minmax(0,1fr)}.search{width:100%}.seg{flex-wrap:wrap}}
-.crit{padding:12px 18px;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:16px;align-items:start;font-size:12px;color:var(--ink2);line-height:1.5}
-.crit .h{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:6px}
-.crit .h i{width:7px;height:7px;border-radius:50%;display:inline-block}
-.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#6D28D9;background:#F3EEFF;vertical-align:1px}
-@media (max-width:1100px){.crit{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.crit{grid-template-columns:minmax(0,1fr)}}
 .nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
 .nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
 .nav a.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
-.link{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
-.link:hover{background:#EAF0FF}
-.eq{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
-@media (min-width:1100px){.eq{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}}
-.q{padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:13px}
+.pl{font-weight:600;color:var(--ink2)}
+.pick select{height:36px;max-width:100%;min-width:260px;padding:0 10px;border:1px solid #C9D7FB;border-radius:10px;background:#F5F8FF;font-weight:600;color:#1D4ED8}
+.pnote{font-size:12px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:16px;align-items:stretch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.q{padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .qn{font-size:12px;color:var(--mute);font-weight:600;letter-spacing:.01em}
 .big{font-size:19px;font-weight:700;line-height:1.4;letter-spacing:-.01em;color:var(--ink)}
 .bd{display:inline-block;align-self:flex-start;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;line-height:1.4}
 .bd.ok{background:#DCFCE7;color:#166534}
 .bd.warn{background:#FEF3C7;color:#92400E}
 .bd.gray{background:#E2E8F0;color:#475569}
-.cmp{display:grid;grid-template-columns:34px minmax(0,1fr) 46px;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--ink2)}
-.cb{height:14px;background:var(--line2);border-radius:7px;overflow:hidden}
-.cb i{display:block;height:100%;border-radius:7px}
-.cv{font-weight:700;text-align:right}
+.chart{width:100%;min-width:0}
 .small{font-size:12px;color:var(--mute);line-height:1.5}
 .sub{font-size:13px;color:var(--ink2);display:flex;flex-direction:column;align-items:flex-start;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
 .sub b{font-weight:700;color:var(--ink);font-size:14px}
-.tl{margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:var(--ink2)}
-.tl li.hot{color:#C2410C;font-weight:600}
-.tl b{display:inline-block;min-width:64px;color:var(--ink);font-weight:600}
-.chart{width:100%}
-.chart svg{display:block}
-.stack{display:flex;height:18px;border-radius:9px;overflow:hidden;gap:2px;background:var(--line2)}
-.stack i{display:block;height:100%;min-width:0}
-.sl{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink2)}
-.sl b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
-.note{font-size:11.5px;color:#92400E;background:#FFFBEB;border-radius:8px;padding:6px 9px;line-height:1.5}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--line2);align-self:flex-start}
+.seg button{border:0;background:transparent;height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--mute);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.hist{display:flex;gap:8px;flex-wrap:wrap}
+.hc{flex:1;min-width:150px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.6;color:var(--ink2)}
+.hc b{display:block;font-size:13px;color:var(--ink)}
+.j{display:inline-block;margin-top:4px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px}
+.link{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:9px;border:1px solid #C9D7FB;background:#F5F8FF;color:#1D4ED8;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;align-self:flex-start}
+.link:hover{background:#EAF0FF}
 .foot{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mute);line-height:1.7;padding:2px 4px 8px}
 .foot b{color:var(--ink2)}
-
+button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1100px){.top,.topr{flex-wrap:wrap}.stamp{height:auto;min-height:40px;flex-wrap:wrap}}
+@media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)}.pick select{min-width:0;width:100%}}
 @media (max-width:560px){.brand{flex-wrap:wrap;row-gap:10px}.brand .nav{margin-left:0 !important;width:100%;overflow-x:auto}h1{white-space:nowrap}.top{align-items:flex-start}}
 </style>
 </head>
 <body>
-<div id="root"><div style="padding:48px 24px;font:14px "Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;color:#64748B">데이터 불러오는 중…</div></div>
+<div id="root"><div style='padding:48px 24px;font:14px "Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;color:#64748B'>데이터 불러오는 중…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js"></script>
 <script src="policy.js"></script>
 <script src="source.js"></script>
 <script>
-let ITEMS = [], META = {};
-const {useMemo} = React;
+let ITEMS = [], META = {}, DATA = [];
+const {useMemo, useEffect, useRef, useState} = React;
 const html = htm.bind(React.createElement);
 const M = window.DispPolicy, SM = window.DispSource;
-const wkLabel = w => w ? "'" + w.slice(2,4) + " W" + w.slice(4) : "";
-const pct = (v, mx) => (mx > 0 ? Math.max(0, v) / mx * 100 : 0).toFixed(1) + "%";
+
+const wkLabel = w => w ? "'" + String(w).slice(2,4) + " W" + String(w).slice(4) : "";
 const bdCls = g => (g === "same-neg" || g === "same-pos") ? "ok" : (g === "depends" ? "warn" : "gray");
 const nf = v => Math.round(v).toLocaleString("ko-KR");
+const fmt1 = v => (typeof v === "number" && isFinite(v)) ? v.toFixed(1) : "—";
+const isNum = v => typeof v === "number" && isFinite(v);
+const isOpen = r => r == null || r === "" || r === false || (isNum(r) && r < 0);
+const idxOf = (weeks, v) => isNum(v) ? v : (weeks || []).indexOf(v);
+const lbl = (weeks, v) => { const i = idxOf(weeks, v); return (i >= 0 && weeks && weeks[i] != null) ? wkLabel(weeks[i]) : "—"; };
+const dispOf = r => (r.d && r.d.disp) || [];
+const byName = (a, b) => String(a.d.name).localeCompare(String(b.d.name), "ko", {numeric: true});
+const mkOpt = o => ({animation: false, textStyle: {fontFamily: '"Pretendard Variable",Pretendard,system-ui,sans-serif'}, ...o});
 
-// 모든 숫자는 기본 설정(M.DEFAULT_POLICY, M.DEFAULT_ASSUME)으로 로드 시 계산한다
+const CATS = ["반응", "재고 소진", "무반응", "장기미해제", "보류"];
+const CAT_COL = {"반응": "#3B6CF6", "재고 소진": "#10B981", "무반응": "#F26B2A", "장기미해제": "#D49B1F", "보류": "#A3ABB8"};
+const SRCS = ["init", "open", "add", "pre", "after"];
+const SRC_COL = {init: "#8B5CF6", open: "#94A3B8", add: "#10B981", pre: "#EA580C", after: "#CBD2DC"};
+const OUT = [["full", "정상가 판매", "#34D399"], ["disc", "할인 판매", "#FB923C"], ["left", "끝내 남음", "#B91C1C"]];
+
+// 처분 판정: 보류 → 장기미해제 → 반응(배수 1.5배 이상) → 재고 소진 → 무반응
+function judge(x) {
+  if (!(x.onW >= 4) || !(x.preQ >= 0.5)) return "보류";
+  if (isOpen(x.rel) && x.onW >= 24) return "장기미해제";
+  if (x.onQ >= 1.5 * x.preQ) return "반응";
+  if (x.soldOut) return "재고 소진";
+  return "무반응";
+}
+// data.json 행: 발주 후 처분 기간 중 재고가 0 이하로 내려갔는지
+function dataSoldOut(x) {
+  const w = x.weeks || [], st = x.stock || [];
+  const s0 = st[idxOf(w, x.start)];
+  let last = null; st.forEach(v => { if (isNum(v)) last = v; });
+  return isNum(s0) && s0 > 0 && last !== null && last <= 0;
+}
+const wkAct = r => { const c = r.a.clear; return (c >= 0 ? c : r.it.n) - r.it.t0; };
+const wkPol = r => { const c = r.p.clear; return (c >= 0 ? c : r.it.n) - r.it.t0; };
+
+// 가정 격자(GRID) 조합. robust와 같이 r50 < r30 인 조합은 뺀다(조합 수 = robust의 G.n).
+function gridCombos(A) {
+  const g = M.GRID || {};
+  const pick = (arr, d) => (Array.isArray(arr) && arr.length) ? arr : [d];
+  const out = [];
+  pick(g.r30, A.r30).forEach(a => pick(g.r50, A.r50).forEach(b => {
+    if (b < a) return;
+    pick(g.loss, A.loss).forEach(c => out.push({...A, r30: a, r50: b, loss: c}));
+  }));
+  return out;
+}
+
+// 모든 숫자는 기본 설정으로 로드 시 계산한다
 function compute() {
   const P = M.DEFAULT_POLICY, A = M.DEFAULT_ASSUME;
   const R = M.runAll(ITEMS, P, A);
   const G = M.robust(ITEMS, P);
   const S = M.sentences(R.T, G, []);
   const SR = SM.runAll(ITEMS, SM.DEFAULT, M, P, A);
+  const rows = R.rows.filter(r => r.scope);
 
-  // 질문 2: 재처분(2회 이상) 상품 중 가장 큰 '종료 직전 입고' 한 건을 가진 상품
-  let best = null;
-  R.rows.forEach(r => {
-    if (!r.scope || r.d.disp.length < 2) return;
-    const sr = SR.rows.find(x => x.d === r.d);
-    if (!sr || !sr.inf) return;
-    sr.inf.events.forEach(e => {
-      if (e.type === "pre" && (!best || e.q > best.qp)) best = {r, sr, tp: e.t, qp: e.q};
+  // 정책 주수의 가정별 범위(최소~최대)
+  const combos = gridCombos(A);
+  const band = {};
+  combos.forEach(c => {
+    M.runAll(ITEMS, P, c).rows.forEach(r => {
+      if (!r.scope) return;
+      const w = wkPol(r), b = band[r.d.name];
+      if (!b) band[r.d.name] = {lo: w, hi: w};
+      else { b.lo = Math.min(b.lo, w); b.hi = Math.max(b.hi, w); }
     });
   });
 
-  // 질문 3: 종료 직전 입고분이 발주종료 때 남은 재고에서 차지하는 비중과 결말
-  let full = 0, disc = 0, left = 0;
-  SR.rows.forEach(r => {
-    const f = r.fifo && r.sim && r.fifo.fate && r.fifo.fate.pre;
-    if (f) { full += f.full; disc += f.disc; left += f.left; }
+  // 기본 선택: 재처분(2회 이상) 상품 중 가장 큰 '종료 직전 입고'를 가진 상품
+  let best = null;
+  rows.forEach(r => {
+    if (dispOf(r).length < 2) return;
+    const sr = SR.rows.find(x => x.d === r.d);
+    const ev = (sr && sr.inf && sr.inf.events) || [];
+    ev.forEach(e => { if (e.type === "pre" && (!best || e.q > best.qp)) best = {r, tp: e.t, qp: e.q}; });
   });
-  const tot = full + disc + left;
-  const sp = {
-    pct: SR.fifo.sumAt > 0 ? Math.round(SR.fifo.at.pre / SR.fifo.sumAt * 100) : 0,
-    full, disc, left, tot,
-    sh: v => tot > 0 ? Math.round(v / tot * 100) : 0
-  };
-  return {P, A, T: R.T, G, S, best, sp};
+
+  const fateRows = SR.rows.filter(r => r.fifo && r.sim && r.fifo.fate);
+  return {P, A, T: R.T, G, S, best, rows, band, nCombo: combos.length, SR, fateRows};
 }
 
-function Card1({T, S}) {
-  const mx = Math.max(T.aClear, T.pClear, 0.0001);
+function initialName(rows, best) {
+  const m = /(?:^#|&)item=([^&]+)/.exec(location.hash || "");
+  if (m) {
+    let nm = "";
+    try { nm = decodeURIComponent(m[1]); } catch (e) {}
+    if (rows.some(r => r.d.name === nm)) return nm;
+  }
+  if (best) return best.r.d.name;
+  return rows.length ? rows[0].d.name : "";
+}
+
+function useChart(option) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!window.echarts || !ref.current || !option) return;
+    const c = echarts.init(ref.current, null, {renderer: "svg"});
+    c.setOption(option);
+    const onR = () => c.resize();
+    window.addEventListener("resize", onR);
+    return () => { window.removeEventListener("resize", onR); c.dispose(); };
+  }, [option]);
+  return ref;
+}
+
+// 질문 1: 상품별 정리 주수 (실제 점, 규칙 점, 가정 범위 띠)
+function Card1({T, S, rows, band, sel, nCombo}) {
+  const data = useMemo(() => rows.slice().sort(byName).reverse(), [rows]);
+  const q = useMemo(() => data.map((r, i) => {
+    const name = r.d.name, p = wkPol(r), b = band[name] || {lo: p, hi: p};
+    return {i, name, a: wkAct(r), p, lo: b.lo, hi: b.hi, hollow: !(r.a.clear >= 0), term: r.p.term >= 0, sel: name === sel};
+  }), [data, band, sel]);
+  const hasHollow = q.some(x => x.hollow);
+  const opt = useMemo(() => mkOpt({
+    grid: {left: 62, right: 18, top: 24, bottom: 44},
+    tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
+      formatter: p => { const x = q[p.dataIndex]; return x ? "<b>" + x.name + "</b><br>실제 " + x.a + "주 · 규칙 " + x.p + "주<br>가정 범위 " + x.lo + "~" + x.hi + "주" : ""; }},
+    xAxis: {type: "value", name: "발주종료 → 정리(주)", nameLocation: "middle", nameGap: 26, nameTextStyle: {color: "#64748B", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
+    yAxis: {type: "category", data: data.map(r => r.d.name), axisTick: {show: false}, axisLine: {show: false},
+      axisLabel: {formatter: v => { const t = String(v).replace("상품 ", ""); return v === sel ? "{s|" + t + "}" : "{n|" + t + "}"; },
+        rich: {s: {color: "#1D4ED8", fontWeight: 700, fontSize: 12}, n: {color: "#334155", fontSize: 12}}}},
+    series: [
+      {type: "custom", z: 1, data: q.map(x => [x.i, x.lo, x.hi]), encode: {x: [1, 2], y: 0},
+        renderItem: (p, api) => {
+          const lo = api.coord([api.value(1), api.value(0)]), hi = api.coord([api.value(2), api.value(0)]);
+          return {type: "rect", shape: {x: lo[0], y: lo[1] - 6, width: Math.max(2, hi[0] - lo[0]), height: 12, r: 6}, style: {fill: "#DBE6FE"}};
+        }},
+      {type: "custom", z: 2, data: q.map(x => [x.i, x.a, x.p]), encode: {x: [1, 2], y: 0},
+        renderItem: (p, api) => {
+          const a = api.coord([api.value(1), api.value(0)]), b = api.coord([api.value(2), api.value(0)]);
+          const on = q[api.value(0)].sel;
+          return {type: "line", shape: {x1: a[0], y1: a[1], x2: b[0], y2: b[1]}, style: {stroke: on ? "#1D4ED8" : "#94A3B8", lineWidth: on ? 2.5 : 1.5}};
+        }},
+      {type: "scatter", z: 3, data: q.map(x => ({value: [x.a, x.i], name: x.name, symbolSize: x.sel ? 12 : 8,
+        itemStyle: x.hollow ? {color: "#fff", borderColor: "#94A3B8", borderWidth: 2} : {color: "#94A3B8"}})),
+        markLine: {silent: true, symbol: "none", lineStyle: {color: "#94A3B8", type: "dashed"},
+          label: {formatter: "실제 평균 " + Math.round(T.aClear) + "주", position: "insideEndTop", color: "#64748B", fontSize: 10.5}, data: [{xAxis: T.aClear}]}},
+      {type: "scatter", z: 4, data: q.map(x => ({value: [x.p, x.i], name: x.name, symbol: x.term ? "path://M-1,-1L1,1M1,-1L-1,1" : "circle", symbolSize: x.sel ? 13 : 9,
+        itemStyle: x.term ? {color: "#B91C1C", borderColor: "#B91C1C", borderWidth: 2.2} : {color: "#2563EB"}})),
+        markLine: {silent: true, symbol: "none", lineStyle: {color: "#2563EB", type: "dashed"},
+          label: {formatter: "규칙 평균 " + Math.round(T.pClear) + "주", position: "insideStartTop", color: "#1D4ED8", fontSize: 10.5}, data: [{xAxis: T.pClear}]}}
+    ]
+  }), [data, q, band, sel, T]);
+  const ref = useChart(opt);
   return html`<section className="card q">
     <div className="qn">질문 1 · 규칙을 정해 두면 무엇이 달라지나</div>
     <div className="big">${S.clear.text}</div>
     <span className=${"bd " + bdCls(S.clear.grade)}>${S.clear.badge}</span>
-    <div className="cmp">
-      <span>실제</span><div className="cb"><i style=${{width: pct(T.aClear, mx), background: "#94A3B8"}}></i></div><span className="cv">${Math.round(T.aClear)}주</span>
-      <span>규칙</span><div className="cb"><i style=${{width: pct(T.pClear, mx), background: "#2563EB"}}></i></div><span className="cv">${Math.round(T.pClear)}주</span>
-    </div>
-    <div className="small">발주종료부터 다 팔리거나 정리할 때까지 평균 · 대상 상품 ${T.n}개</div>
+    <div className="chart" ref=${ref} style=${{height: 430}}></div>
+    <div className="small">● 실제 → ● 규칙 · 연파랑 띠 = 가정 ${nCombo}가지에서 규칙 정리 주수의 범위 · ✕ = 규칙상 정리 심사로 넘김 · 강조 줄 = 고른 상품${hasHollow ? " · ○ = 기간 안에 정리 안 됨(기간 끝으로 표시)" : ""}</div>
     <div className="sub"><b>${S.loss.text}</b><span className=${"bd " + bdCls(S.loss.grade)}>${S.loss.badge}</span></div>
+    <div className="small">발주종료부터 다 팔리거나 정리할 때까지 평균 · 대상 상품 ${T.n}개</div>
   </section>`;
 }
 
-function Story({best}) {
-  if (!best) return html`<div className="small">조건에 맞는 상품이 없습니다.</div>`;
-  const {r, sr, tp, qp} = best, {d, it, p, a, dl} = r;
-  const n = d.weeks.length, t0 = it.t0;
-  const wk = t => (t >= 0 && t < n) ? wkLabel(d.weeks[t]) : "—";
-  const first = sr.inf.events.find(e => e.type === "init" || e.type === "open") || sr.inf.events[0];
-  const end = Math.round(a.end), since = n - 1 - tp, gap = t0 - tp;
-  const when = gap >= 0 ? gap + "주 전" : (-gap) + "주 뒤";
-  const big = "발주종료 " + when + "에 " + nf(qp) + "개가 들어왔고, " + (since >= 52 ? "1년이 지나도 " : since + "주가 지나도 ") + nf(end) + "개가 남았습니다";
-  const steps = [
-    {k: "a", cls: "", w: wk(first.t), txt: first.type === "init" ? "출시 · 첫 입고 " + nf(first.q) + "개" : "시작 재고 " + nf(first.q) + "개(출처 모름)"},
-    {k: "b", cls: "hot", w: wk(tp), txt: "발주종료 " + when + " " + nf(qp) + "개 입고"},
-    {k: "c", cls: "", w: dl.act >= 0 ? wk(dl.act) + "~" : "", txt: dl.act >= 0 ? "할인 " + d.disp.length + "번" : "할인 없음"},
-    {k: "d", cls: "", w: wk(n - 1), txt: "아직 " + nf(end) + "개 남음"}
-  ];
+// 질문 2: 고른 상품의 재고 이야기
+function Card2({row, sr}) {
+  const d = row.d, it = row.it, n = d.weeks.length, eo = it.t0, end = Math.round(row.a.end);
+  const X = d.weeks.map(wkLabel);
+  const clamp = v => Math.max(0, Math.min(n - 1, v));
+  const ev = (sr && sr.inf && sr.inf.events) || [];
+  const pres = ev.filter(e => e.type === "pre");
+  const pre = pres.length ? pres.reduce((a, b) => (b.q > a.q ? b : a)) : null;
+  const disp = dispOf(row);
+  const judged = disp.map(x => judge({onW: x.onW, preQ: x.preQ, onQ: x.onQ, rel: x.rel, soldOut: x.stk0 > 0 && x.stkEnd <= 0}));
+  const cnt = {}; judged.forEach(c => { cnt[c] = (cnt[c] || 0) + 1; });
+  const summ = CATS.filter(c => cnt[c]).map(c => c + " " + cnt[c]).join(" · ");
+  const badge = disp.length ? "할인 " + disp.length + "번" + (summ ? " · " + summ : "") : "할인 없음";
 
-  // 그림: 주황=할인 주, 검은 선=실제 재고, 파란 선=규칙을 따랐을 때 재고
-  const W = 340, H = 130, PT = 10, PB = 22, PL = 6, PR = 6;
-  const cw = (W - PL - PR) / n;
-  const xl = t => PL + t * cw, xc = t => xl(t) + cw / 2;
-  const km = Math.max(1, ...d.stock.filter(v => v != null), ...p.stock.filter(v => v != null));
-  const yk = v => H - PB - (H - PB - PT) * Math.max(0, v) / km;
-  const path = (arr, from) => {
-    let pen = false; const segs = [];
-    arr.forEach((v, t) => { if (t < from || v == null) { pen = false; return; } segs.push((pen ? "L" : "M") + xc(t).toFixed(1) + "," + yk(v).toFixed(1)); pen = true; });
-    return segs.join(" ");
-  };
-  const polStock = p.stock.map((v, t) => t === t0 - 1 ? it.s0 : v);
-  return html`<div>
-    <div className="big">${big}</div>
-    <ol className="tl">${steps.map(s => html`<li key=${s.k} className=${s.cls}><b>${s.w}</b>${s.txt}</li>`)}</ol>
-    <div className="chart"><svg viewBox=${`0 0 ${W} ${H}`} width="100%" role="img" aria-label=${d.name + " 재고 그림"}>
-      ${d.disc.map((v, t) => (t < n && v > 0) ? html`<rect key=${"d" + t} x=${xl(t)} y=${PT} width=${cw} height=${H - PB - PT} fill="#FFF1E8"></rect>` : null)}
-      <line x1=${xc(t0)} x2=${xc(t0)} y1=${PT} y2=${H - PB} stroke="#B7791F" strokeDasharray="3 3"></line>
-      <text x=${xc(t0) + 3} y=${PT + 8} fontSize="10.5" fill="#B7791F" fontWeight="600">발주종료</text>
-      <path d=${path(d.stock, 0)} fill="none" stroke="#0F172A" strokeWidth="2"></path>
-      <path d=${path(polStock, t0 - 1)} fill="none" stroke="#2563EB" strokeWidth="2.4"></path>
-      ${p.term >= 0 ? html`<g><circle cx=${xc(p.term)} cy=${yk(0)} r="4" fill="#2563EB"></circle><text x=${xc(p.term) + 6} y=${yk(0) - 8} fontSize="11" fill="#1D4ED8" fontWeight="700">규칙: ${wk(p.term)} 정리</text></g>` : null}
-      <text x=${W - PR} y=${Math.max(PT + 12, yk(a.end) - 6)} fontSize="11" fill="#0F172A" fontWeight="700" textAnchor="end">실제: ${end}개 남음</text>
-      <text x=${PL} y=${H - 6} fontSize="10" fill="#94A3B8">${wk(0)}</text>
-      <text x=${W - PR} y=${H - 6} fontSize="10" fill="#94A3B8" textAnchor="end">${wk(n - 1)}</text>
-    </svg></div>
-    <div className="small">검은 선 = 실제 재고 · 파란 선 = 규칙을 따랐다면 · 주황 = 할인 기간</div>
-    <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>정책 설계에서 자세히 →</a>
-  </div>`;
-}
+  const stock = d.stock.map(v => isNum(v) ? v : null);
+  let lastIdx = -1; for (let t = n - 1; t >= 0; t--) if (stock[t] != null) { lastIdx = t; break; }
+  const soldIdx = (() => { for (let t = Math.max(0, eo); t < n; t++) if (stock[t] != null && stock[t] <= 0) return t; return -1; })();
+  let big;
+  if (pre) {
+    const gap = eo - pre.t, when = gap >= 0 ? gap + "주 전" : (-gap) + "주 뒤";
+    if (end <= 0) big = "발주종료 " + when + "에 " + nf(pre.q) + "개가 들어왔고, 발주종료 뒤 " + Math.max(0, soldIdx - eo) + "주 만에 다 팔렸습니다";
+    else {
+      const since = n - 1 - pre.t;
+      big = "발주종료 " + when + "에 " + nf(pre.q) + "개가 들어왔고, " + (since >= 52 ? "1년이 지나도 " : since + "주가 지나도 ") + nf(end) + "개가 남았습니다";
+    }
+  } else if (end <= 0) big = "발주종료 뒤 " + Math.max(0, soldIdx - eo) + "주 만에 다 팔렸습니다";
+  else {
+    const since = n - 1 - eo;
+    big = "발주종료 뒤 " + (since >= 52 ? "1년이 지나도 " : since + "주가 지나도 ") + nf(end) + "개가 남았습니다";
+  }
 
-function Card2({best}) {
+  const opt = useMemo(() => {
+    const pol = row.p.stock.map((v, t) => t < eo - 1 ? null : (t === eo - 1 ? (isNum(it.s0) ? it.s0 : null) : (isNum(v) ? v : null)));
+    const areas = disp.map((x, i) => {
+      const s = idxOf(d.weeks, x.start);
+      if (!(s >= 0)) return null;
+      const e0 = isOpen(x.rel) ? -1 : idxOf(d.weeks, x.rel);
+      const e = e0 >= 0 ? e0 : n - 1;
+      return [{xAxis: X[clamp(s)], name: "처분 " + (i + 1)}, {xAxis: X[clamp(e)]}];
+    }).filter(Boolean);
+    const pins = [];
+    if (d.launch != null && d.launch === d.weeks[0] && stock[0] != null) pins.push({coord: [X[0], stock[0]], value: "출시", itemStyle: {color: "#8B5CF6"}});
+    if (pre && pre.t >= 0 && pre.t < n && stock[pre.t] != null) pins.push({coord: [X[pre.t], stock[pre.t]], value: nf(pre.q) + "개", itemStyle: {color: "#EA580C"}});
+    if (lastIdx >= 0) pins.push({coord: [X[lastIdx], stock[lastIdx]], value: nf(stock[lastIdx]) + "개", itemStyle: {color: "#0F172A"}});
+    const term = row.p.term;
+    const termPins = (term >= 0 && term < n) ? [{coord: [X[term], isNum(row.p.stock[term]) ? row.p.stock[term] : 0], value: "규칙: " + wkLabel(d.weeks[term]) + " 정리", itemStyle: {color: "#2563EB"}}] : [];
+    return mkOpt({
+      grid: {left: 44, right: 16, top: 40, bottom: 34},
+      tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}},
+      xAxis: {type: "category", data: X, boundaryGap: false, axisLabel: {color: "#94A3B8", hideOverlap: true, interval: "auto"}, axisLine: {lineStyle: {color: "#E2E8F0"}}, axisTick: {show: false}},
+      yAxis: {type: "value", name: "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
+      series: [
+        {name: "실제 재고", type: "line", data: stock, symbol: "none", connectNulls: false, lineStyle: {color: "#0F172A", width: 2},
+          areaStyle: {color: {type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: "rgba(15,23,42,.18)"}, {offset: 1, color: "rgba(15,23,42,0)"}]}},
+          markArea: {silent: true, itemStyle: {color: "rgba(249,115,22,.10)"}, label: {color: "#C2410C", fontSize: 11, fontWeight: 600, position: "insideTop"}, data: areas},
+          markLine: {silent: true, symbol: "none", lineStyle: {color: "#B7791F", type: "dashed"}, label: {formatter: "발주종료", color: "#B7791F", fontSize: 11, fontWeight: 600}, data: [{xAxis: X[clamp(eo)]}]},
+          ...(pins.length ? {markPoint: {symbol: "pin", symbolSize: 44, label: {fontSize: 10.5, fontWeight: 700, color: "#fff"}, data: pins}} : {})},
+        {name: "규칙을 따랐다면", type: "line", data: pol, symbol: "none", connectNulls: false, lineStyle: {color: "#2563EB", width: 2.6},
+          ...(termPins.length ? {markPoint: {symbol: "roundRect", symbolSize: [120, 22], label: {fontSize: 10.5, fontWeight: 700, color: "#fff"}, data: termPins}} : {})}
+      ]
+    });
+  }, [row, sr]);
+  const ref = useChart(opt);
   return html`<section className="card q">
-    <div className="qn">질문 2 · 한 상품의 이야기${best ? " (" + best.r.d.name + ")" : ""}</div>
-    <${Story} best=${best} />
+    <div className="qn">질문 2 · 이 상품은 어떻게 흘러왔나 (${d.name})</div>
+    <div className="big">${big}</div>
+    <span className="bd gray">${badge}</span>
+    <div className="chart" ref=${ref} style=${{height: 430}}></div>
+    <div className="small">검은 면 = 실제 재고 · 파란 선 = 규칙을 따랐다면 · 주황 띠 = 처분(할인) 기간 · 점에 손을 대면 주별 값</div>
+    <a className="link" href=${"policy.html#item=" + encodeURIComponent(d.name)}>정책 설계에서 자세히 →</a>
   </section>`;
 }
 
-function Card3({sp}) {
+// 질문 3: 발주종료 직전 입고분의 결말 (출처 흐름)
+function Card3({fateRows, sel}) {
+  const [mode, setMode] = useState("all");
+  const list = useMemo(() => mode === "all" ? fateRows : fateRows.filter(r => r.d.name === sel), [mode, fateRows, sel]);
+  const agg = useMemo(() => {
+    const s = {};
+    SRCS.forEach(src => { s[src] = {full: 0, disc: 0, left: 0}; });
+    list.forEach(r => SRCS.forEach(src => {
+      const f = r.fifo.fate[src]; if (!f) return;
+      s[src].full += f.full || 0; s[src].disc += f.disc || 0; s[src].left += f.left || 0;
+    }));
+    return s;
+  }, [list]);
+  const tot = src => agg[src].full + agg[src].disc + agg[src].left;
+  const preQ = tot("pre"), pct = preQ > 0 ? Math.round(agg.pre.left / preQ * 100) : 0;
+  const big = !list.length ? "이 상품은 물량 흐름을 나눌 수 없습니다"
+    : preQ > 0 ? "종료 직전 입고 " + nf(preQ) + "개 중 " + pct + "%가 끝내 남았습니다"
+    : (mode === "all" ? "전체 상품은" : "이 상품은") + " 종료 직전 큰 입고가 없습니다";
+  const opt = useMemo(() => {
+    if (!list.length) return null;
+    const names = {}, nodes = [], links = [];
+    SRCS.forEach(s => {
+      if (tot(s) > 0.5) {
+        names[s] = ((SM.LABEL && SM.LABEL[s]) || s) + " " + nf(tot(s)) + "개";
+        nodes.push({name: names[s], itemStyle: {color: SRC_COL[s]}});
+      }
+    });
+    OUT.forEach(([k, label, col]) => {
+      const t = SRCS.reduce((a, s) => a + agg[s][k], 0);
+      if (t > 0.5) nodes.push({name: label, itemStyle: {color: col}});
+    });
+    SRCS.forEach(s => { if (!names[s]) return; OUT.forEach(([k, label]) => { const v = agg[s][k]; if (v > 0.5) links.push({source: names[s], target: label, value: Math.round(v)}); }); });
+    return mkOpt({
+      tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
+        formatter: p => p.dataType === "edge" ? p.data.source + " → " + p.data.target + ": " + p.data.value + "개" : p.name},
+      series: [{type: "sankey", left: 8, right: 110, top: 10, bottom: 10, nodeWidth: 14, nodeGap: 14, data: nodes, links,
+        lineStyle: {color: "gradient", opacity: 0.35, curveness: 0.5}, label: {color: "#0F172A", fontSize: 12, fontWeight: 600}}]
+    });
+  }, [agg]);
+  const ref = useChart(opt);
   return html`<section className="card q">
     <div className="qn">질문 3 · 끝나기 직전에 들어온 물량은 어떻게 됐나</div>
-    <div className="big">발주종료 때 남은 재고의 ${sp.pct}%가 끝나기 직전에 들어온 물량</div>
-    <div className="small">그 물량(${nf(sp.tot)}개)의 결말</div>
-    <div className="stack"><i style=${{flex: sp.full, background: "#10B981"}}></i><i style=${{flex: sp.disc, background: "#F97316"}}></i><i style=${{flex: sp.left, background: "#B91C1C"}}></i></div>
-    <div className="sl">
-      <span><b style=${{background: "#10B981"}}></b>정상가로 팔림 ${sp.sh(sp.full)}%</span>
-      <span><b style=${{background: "#F97316"}}></b>할인해서 팔림 ${sp.sh(sp.disc)}%</span>
-      <span><b style=${{background: "#B91C1C"}}></b>끝내 남음 ${sp.sh(sp.left)}%</span>
+    <div className="seg">
+      <button className=${mode === "all" ? "on" : ""} onClick=${() => setMode("all")}>전체</button>
+      <button className=${mode === "one" ? "on" : ""} onClick=${() => setMode("one")}>이 상품</button>
     </div>
-    <div className="note">가상 데이터라 비중은 예시입니다 · 오래된 입고부터 팔린다고 가정 · 입고는 재고·판매로 역산한 추정</div>
+    <div className="big">${big}</div>
+    <span className="bd warn">가상 데이터라 비중은 예시 · 오래된 입고부터 팔린다고 가정</span>
+    ${list.length ? html`<div className="chart" ref=${ref} style=${{height: 300}}></div>` : html`<div className="small">이 상품은 입고를 출처별로 나눌 수 없어 그림을 그리지 않습니다.</div>`}
+    <div className="small">발주종료 때 남은 재고(입고 출처) → 결말 · 굵기 = 개수 · 입고는 재고·판매로 역산한 추정</div>
   </section>`;
+}
+
+// 질문 4: 처분(할인) 효과 (data.json 행 = 상품별 마지막 처분)
+function Card4({row, sel}) {
+  const rowsD = useMemo(() => DATA
+    .filter(x => isNum(x.preQ) && x.preQ > 0 && isNum(x.onQ))
+    .map(x => {
+      const sold = dataSoldOut(x);
+      return {name: x.name, cat: judge({onW: x.onW, preQ: x.preQ, onQ: x.onQ, rel: x.rel, soldOut: sold}), mult: x.onQ / x.preQ, sold};
+    }), []);
+  const N = rowsD.length, a = rowsD.filter(x => x.cat === "반응").length, b = rowsD.filter(x => x.cat === "재고 소진").length;
+  const big = N ? "처분 " + N + "건 중 배수 1.5배를 넘은 건 " + a + "건" + (b > 0 ? ", 재고가 다 팔린 건 " + b + "건" : "") + "입니다"
+    : "처분 데이터(data.json)를 읽지 못했습니다";
+  const catRows = CATS.slice().reverse();
+  const yLabels = catRows.map(c => c + " " + rowsD.filter(x => x.cat === c).length);
+  const opt = useMemo(() => {
+    if (!rowsD.length) return null;
+    const maxM = Math.max(...rowsD.map(x => x.mult));
+    return mkOpt({
+      grid: {left: 96, right: 20, top: 14, bottom: 28},
+      xAxis: {type: "value", min: 0, max: Math.max(2.5, Math.ceil(maxM)), axisLabel: {color: "#94A3B8", formatter: v => v + "배"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
+      yAxis: {type: "category", data: yLabels, axisTick: {show: false}, axisLine: {show: false}, axisLabel: {color: "#334155"}},
+      tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
+        formatter: p => p.name + "<br>" + Number(p.value[0]).toFixed(1) + "배"},
+      series: [{type: "scatter", data: rowsD.map(x => ({name: x.name, value: [x.mult, catRows.indexOf(x.cat)], symbolSize: x.name === sel ? 16 : 10,
+          itemStyle: {color: CAT_COL[x.cat], borderColor: x.name === sel ? "#0F172A" : "#fff", borderWidth: x.name === sel ? 2.5 : 1}})),
+        markLine: {silent: true, symbol: "none", lineStyle: {color: "#1D4ED8", type: "dashed"},
+          label: {formatter: "반응 기준 1.5배 (가상)", color: "#1D4ED8", fontSize: 10.5}, data: [{xAxis: 1.5}]}}]
+    });
+  }, [rowsD, sel]);
+  const ref = useChart(opt);
+
+  const w = row.d.weeks, disp = dispOf(row);
+  const cards = disp.map(x => {
+    const mult = x.preQ > 0 && isNum(x.onQ) ? x.onQ / x.preQ : null;
+    const c = judge({onW: x.onW, preQ: x.preQ, onQ: x.onQ, rel: x.rel, soldOut: x.stk0 > 0 && x.stkEnd <= 0});
+    return {seq: x.seq, start: x.start, rel: x.rel, onW: x.onW, preQ: x.preQ, onQ: x.onQ, mult, c};
+  });
+  const inData = DATA.some(x => x.name === row.d.name);
+  return html`<section className="card q">
+    <div className="qn">질문 4 · 처분(할인)은 효과가 있었나</div>
+    <div className="big">${big}</div>
+    <span className="bd gray">배수는 할인과 시즌·진열 효과를 구분하지 못함</span>
+    <div className="chart" ref=${ref} style=${{height: 250}}></div>
+    <div className="small">점 하나 = 처분 1건(상품별 마지막 처분) · 가로 = 배수(처분 중 판매 ÷ 처분 전 판매) · 반응 기준 1.5배는 가상 설정 · 큰 점 = 고른 상품</div>
+    <div className="small">분류 순서: 보류(4주 미만 또는 처분 전 판매 0.5개 미만) → 장기미해제(24주 이상 진행 중) → 반응(1.5배 이상) → 재고 소진 → 무반응</div>
+    ${disp.length
+      ? html`<div className="hist">${cards.map((x, i) => html`<div className="hc" key=${i}>
+          <b>${x.seq}회차 · ${lbl(w, x.start)}~${isOpen(x.rel) ? "진행 중" : lbl(w, x.rel)}</b>
+          ${x.onW}주 · 판매 ${fmt1(x.preQ)}→${fmt1(x.onQ)}개 · ${x.mult == null ? "—" : x.mult.toFixed(1) + "배"}<br/>
+          <span className="j" style=${{background: CAT_COL[x.c] + "22", color: CAT_COL[x.c]}}>${x.c}</span>
+        </div>`)}</div>`
+      : html`<div className="small">이 상품은 처분 이력이 없습니다</div>`}
+    ${inData ? html`<a className="link" href=${"index.html#item=" + encodeURIComponent(row.d.name)}>처분 진단에서 보기 →</a>` : null}
+  </section>`;
+}
+
+function optText(r) {
+  const disp = dispOf(r);
+  return [r.d.name, r.d.dkind || r.d.cat, disp.length > 1 ? "재처분 " + disp.length + "회" : ""].filter(Boolean).join(" · ");
 }
 
 function App() {
   const m = useMemo(compute, []);
-  const {P, A, T, G, S, best, sp} = m;
+  const {P, A, T, G, S, best, rows, band, nCombo, SR, fateRows} = m;
+  const [sel, setSel] = useState(() => initialName(rows, best));
+  const sorted = useMemo(() => rows.slice().sort(byName), [rows]);
+  const row = rows.find(r => r.d.name === sel) || rows[0];
+  const sr = row ? SR.rows.find(x => x.d === row.d) : null;
+  const choose = name => {
+    setSel(name);
+    try { history.replaceState(null, "", "#item=" + encodeURIComponent(name)); } catch (e) {}
+  };
   return html`<div className="app">
     <header className="top">
       <div className="brand">
         <div className="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h14M3 10h9M3 15h5"/><path d="M15 12l2 2-2 2"/></svg></div>
         <div><div className="crumb">SCM 재고관리 · 한눈에 보기</div><h1>재고 처분 한눈에 보기</h1></div>
-        <nav className="nav" style=${{marginLeft:18}}><a className="on" href="easy.html">한눈에 보기</a><a href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav>
+        <nav className="nav" style=${{marginLeft: 18}}><a className="on" href="easy.html">한눈에 보기</a><a href="index.html">처분 진단</a><a href="policy.html">정책 설계</a><a href="guide.html">설명</a></nav>
       </div>
       <div className="topr"><div className="stamp"><span className="live"></span>${META.store || "예시 점포"} · ${META.label || "데이터"} ${wkLabel(META.dataWeek || "")} 기준</div></div>
     </header>
-    <div className="eq">
-      <${Card1} T=${T} S=${S} />
-      <${Card2} best=${best} />
-      <${Card3} sp=${sp} />
+    <div className="pick">
+      <span className="pl">상품 고르기</span>
+      <select value=${sel} onChange=${e => choose(e.target.value)}>
+        ${sorted.map(r => html`<option key=${r.d.name} value=${r.d.name}>${optText(r)}</option>`)}
+      </select>
+      <span className="pnote">정책 대상 ${rows.length}개 · 이름순 · 숫자를 바꾸는 설정은 없음</span>
     </div>
+    ${row
+      ? html`<div className="grid">
+          <${Card1} T=${T} S=${S} rows=${rows} band=${band} sel=${row.d.name} nCombo=${nCombo} />
+          <${Card2} row=${row} sr=${sr} />
+          <${Card3} fateRows=${fateRows} sel=${row.d.name} />
+          <${Card4} row=${row} sel=${row.d.name} />
+        </div>`
+      : html`<section className="card q"><div className="small">정책 대상 상품이 없습니다.</div></section>`}
     <div className="foot">
       <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과</div>
       <div><a className="link" href="policy.html">정책 설계에서 바꿔 보기 →</a></div>
@@ -302,9 +460,18 @@ function App() {
 }
 
 const rootEl = document.getElementById("root");
-fetch("lifecycle.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(j => { META = j.meta || {}; ITEMS = j.items || []; if (!ITEMS.length) throw new Error("empty"); ReactDOM.createRoot(rootEl).render(html`<${App} />`); })
-  .catch(e => { rootEl.innerHTML = '<div style="padding:48px 24px;font:14px "Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;color:#64748B">lifecycle.json을 읽지 못했습니다. 페이지와 같은 위치에 있는지 확인하세요. (' + e.message + ')</div>'; });
+const getJSON = u => fetch(u).then(r => { if (!r.ok) throw new Error(u + " " + r.status); return r.json(); });
+Promise.all([
+  getJSON("lifecycle.json"),
+  fetch("data.json").then(r => r.json()).catch(() => ({items: []}))
+]).then(([j, d2]) => {
+  META = j.meta || {}; ITEMS = j.items || [];
+  if (!ITEMS.length) throw new Error("empty");
+  DATA = (d2 && Array.isArray(d2.items)) ? d2.items : [];
+  ReactDOM.createRoot(rootEl).render(html`<${App} />`);
+}).catch(e => {
+  rootEl.innerHTML = '<div style="padding:48px 24px;font:14px \'Pretendard Variable\',Pretendard,system-ui,-apple-system,sans-serif;color:#64748B">lifecycle.json을 읽지 못했습니다. 페이지와 같은 위치에 있는지 확인하세요. (' + e.message + ')</div>';
+});
 </script>
 </body>
 </html>
