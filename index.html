@@ -279,7 +279,7 @@ function Detail({d, mult}) {
   else evs.push({t:"처분 진행 중", x:d.onW + "주째", w:"", c:"#D49B1F"});
   return html`<section className="card det">
     <div className="dh">
-      <div><div className="dt">${d.name}</div><div className="dm">${d.kind} · ${wkLabel(d.start)} 시작 · ${d.rel ? (d.relSrc==="AUTO"?"자동해제 ":"해제 ") + wkLabel(d.rel) : "처분 중"}</div></div>
+      <div><div className="dt">${d.name}</div><div className="dm">${d.kind} · ${wkLabel(d.start)} 시작 · ${d.rel ? (d.relSrc==="AUTO"?"자동해제 ":"해제 ") + wkLabel(d.rel) : "처분 중"}</div>${d.lifeType ? html`<div className="dm" style=${{marginTop:2}}>판매 수명 유형 ${d.lifeType}${d.onePage ? html` · <a href=${d.onePage} target="_blank" rel="noopener" style=${{color:"#2563EB",fontWeight:600}}>상품 한 장에서 전체 이력 보기 →</a>` : null}</div>` : null}</div>
       <div className="dh-r"><a className="link" href=${"lifecycle.html#item=" + encodeURIComponent(d.name)}>이 상품 생애주기 보기 →</a><${Pill} j=${j} /></div>
     </div>
     <div>

@@ -274,7 +274,7 @@ function Detail({d, lim, sr, fifo}) {
   const last = d.ds[d.ds.length-1];
   return html`<section className="card det">
     <div className="dh">
-      <div><div className="dt">${d.name}</div><div className="dm">${d.cat} · ${d.launch ? wkLabel(d.launch) + " 출시" : "'25 W01 이전 출시"} · 지금 ${now}${d.sinceEo !== null && d.oi < 0 ? " " + d.sinceEo + "주째" : ""}${d.ongoing ? " · 처분 중" : ""}</div></div>
+      <div><div className="dt">${d.name}</div><div className="dm">${d.cat} · ${d.launch ? wkLabel(d.launch) + " 출시" : "'25 W01 이전 출시"} · 지금 ${now}${d.sinceEo !== null && d.oi < 0 ? " " + d.sinceEo + "주째" : ""}${d.ongoing ? " · 처분 중" : ""}</div>${d.lifeType ? html`<div className="dm" style=${{marginTop:2}}>판매 수명 유형 ${d.lifeType}${d.onePage ? html` · <a href=${d.onePage} target="_blank" rel="noopener" style=${{color:"#2563EB",fontWeight:600}}>상품 한 장에서 전체 이력 보기 →</a>` : null}</div>` : null}</div>
       <div className="dh-r">${last && html`<a className="link" href=${dispLink(d)}>처분 화면에서 보기 →</a>`}<${Pill} j=${j} /></div>
     </div>
     <div>
