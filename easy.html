@@ -140,6 +140,7 @@ function compute() {
   const S = M.sentences(R.T, G, []);
   const SR = SM.runAll(ITEMS, SM.DEFAULT, M, P, A);
   const rows = R.rows.filter(r => r.scope);
+  const others = R.rows.filter(r => !r.scope);
 
   // 정책 주수의 가정별 범위(최소~최대)
   const combos = gridCombos(A);
@@ -163,7 +164,7 @@ function compute() {
   });
 
   const fateRows = SR.rows.filter(r => r.fifo && r.sim && r.fifo.fate);
-  return {P, A, T: R.T, G, S, best, rows, band, nCombo: combos.length, SR, fateRows};
+  return {P, A, T: R.T, G, S, best, rows, others, band, nCombo: combos.length, SR, fateRows};
 }
 
 function initialName(rows, best) {
@@ -203,7 +204,7 @@ function Card1({T, S, rows, band, sel, nCombo, scale}) {
   const pctOf = v => (Math.max(0, v || 0) / mxPW * 100).toFixed(1) + "%";
   const nBigPW = rows.filter(r => r.pPW > r.aPW).length;
   const opt = useMemo(() => mkOpt({
-    grid: {left: 62, right: 18, top: 24, bottom: 44},
+    grid: {left: 118, right: 18, top: 24, bottom: 44},
     tooltip: {trigger: "item", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12},
       formatter: p => { const x = q[p.dataIndex]; return x ? "<b>" + x.name + "</b><br>실제 " + x.a + "주 · 규칙 " + x.p + "주<br>가정 범위 " + x.lo + "~" + x.hi + "주" : ""; }},
     xAxis: {type: "value", name: "발주종료 → 정리(주)", nameLocation: "middle", nameGap: 26, nameTextStyle: {color: "#64748B", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
@@ -459,7 +460,7 @@ function optText(r) {
 
 function App() {
   const m = useMemo(compute, []);
-  const {P, A, T, G, S, best, rows, band, nCombo, SR, fateRows} = m;
+  const {P, A, T, G, S, best, rows, others, band, nCombo, SR, fateRows} = m;
   const [sel, setSel] = useState(() => initialName(rows, best));
   const [scaleMode, setScaleMode] = useState("one");
   const scale = scaleMode === "all" ? M.STORES : 1;
@@ -485,13 +486,14 @@ function App() {
       <span className="pl">상품 고르기</span>
       <select value=${sel} onChange=${e => choose(e.target.value)}>
         ${sorted.map(r => html`<option key=${r.d.name} value=${r.d.name}>${optText(r)}</option>`)}
+        ${others.length ? html`<optgroup label="정책 대상 아님 (상품 생애주기에서 보기)">${others.slice().sort(byName).map(r => html`<option key=${r.d.name} value=${"x:" + r.d.name} disabled>${r.d.name} · ${(r.it && r.it.why) || "정책 대상 아님"}</option>`)}</optgroup>` : null}
       </select>
       <div className="seg">
         <button className=${scale === 1 ? "on" : ""} onClick=${() => setScaleMode("one")}>1개 점포</button>
         <button className=${scale > 1 ? "on" : ""} onClick=${() => setScaleMode("all")}>전 점포 환산</button>
       </div>
       ${scale > 1 ? html`<span className="pnote amb">가상 점포 ${M.STORES}곳에 같은 결과를 곱한 값(점포 간 차이 무시)</span>` : null}
-      <span className="pnote">정책 대상 ${rows.length}개 · 이름순 · 숫자를 바꾸는 설정은 없음</span>
+      <span className="pnote">정책 대상 ${rows.length}개 / 전체 ${rows.length + others.length}개 · 정책 대상 = 발주종료 뒤 재고가 남은 상품 · 나머지는 <a className="link" href="lifecycle.html">상품 생애주기</a>에서</span>
     </div>
     ${row
       ? html`<div className="grid">
