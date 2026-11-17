@@ -111,6 +111,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 </style>
 </head>
 <body>
+<script src="lifebar.js" data-site="disp"></script>
 <style>
 .nav{display:flex;gap:2px;padding:3px;border-radius:10px;background:#E9ECF1}
 .nav a{height:32px;padding:0 14px;border-radius:8px;font-size:13px;color:var(--mute);text-decoration:none;display:flex;align-items:center;font-weight:500;white-space:nowrap}
@@ -134,7 +135,7 @@ h1{white-space:nowrap}
 <script src="policy.js"></script>
 <script>
 let ITEMS = [], META = {};
-const {useState, useMemo, useRef} = React;
+const {useState, useMemo, useRef, useEffect} = React;
 const html = htm.bind(React.createElement);
 const J = {
   "반응":      {fg:"#1D4ED8", bg:"#EEF3FF", dot:"#3B6CF6"},
@@ -279,7 +280,7 @@ function Detail({d, mult}) {
   else evs.push({t:"처분 진행 중", x:d.onW + "주째", w:"", c:"#D49B1F"});
   return html`<section className="card det">
     <div className="dh">
-      <div><div className="dt">${d.name}</div><div className="dm">${d.kind} · ${wkLabel(d.start)} 시작 · ${d.rel ? (d.relSrc==="AUTO"?"자동해제 ":"해제 ") + wkLabel(d.rel) : "처분 중"}</div>${d.lifeType ? html`<div className="dm" style=${{marginTop:2}}>판매 수명 유형 ${d.lifeType}${d.onePage ? html` · <a href=${d.onePage} target="_blank" rel="noopener" style=${{color:"#2563EB",fontWeight:600}}>상품 한 장에서 전체 이력 보기 →</a>` : null}</div>` : null}</div>
+      <div><div className="dt">${d.name}</div><div className="dm">${d.kind} · ${wkLabel(d.start)} 시작 · ${d.rel ? (d.relSrc==="AUTO"?"자동해제 ":"해제 ") + wkLabel(d.rel) : "처분 중"}</div>${d.lifeType ? html`<div className="dm" style=${{marginTop:2}}>판매 수명 유형 ${d.lifeType}${d.onePage ? html` · <a href=${d.onePage} style=${{color:"#2563EB",fontWeight:600}}>상품 한 장에서 전체 이력 보기 →</a>` : null}</div>` : null}</div>
       <div className="dh-r"><a className="link" href=${"lifecycle.html#item=" + encodeURIComponent(d.name)}>이 상품 생애주기 보기 →</a><${Pill} j=${j} /></div>
     </div>
     <div>
@@ -330,6 +331,7 @@ function App() {
   const rows = useMemo(() => ITEMS.map(d => ({d, j: judge(d, mult)}))
     .sort((a,b) => ORDER.indexOf(a.j) - ORDER.indexOf(b.j) || b.d.stkStartWon - a.d.stkStartWon), [mult]);
   const [sel, setSel] = useState(() => { const hm = location.hash.match(/item=([^&]+)/), hn = hm ? decodeURIComponent(hm[1]) : null; const s = (hn && ITEMS.find(d => d.name === hn)) || ITEMS.find(d => d.pick) || ITEMS.find(d => d.so >= 0 && d.di >= 0 && d.hasRel) || ITEMS[0]; return s.name; });
+  useEffect(() => { try { history.replaceState(null, "", "#item=" + encodeURIComponent(sel)); window.dispatchEvent(new Event("lifebar:sel")); } catch (e) {} }, [sel]);
   const [pg, setPg] = useState(() => Math.max(0, Math.floor(rows.findIndex(r => r.d.name === sel) / 10)));
   const cnt = j => rows.filter(r => r.j === j).length;
   const shown = rows.filter(r => (flt === "전체" || r.j === flt) && (!q || r.d.name.includes(q) || r.d.kind.includes(q)));

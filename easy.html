@@ -69,6 +69,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(
 </style>
 </head>
 <body>
+<script src="lifebar.js" data-site="disp"></script>
 <div id="root"><div style='padding:48px 24px;font:14px "Pretendard Variable",Pretendard,system-ui,-apple-system,sans-serif;color:#64748B'>데이터 불러오는 중…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -462,6 +463,7 @@ function App() {
   const m = useMemo(compute, []);
   const {P, A, T, G, S, best, rows, others, band, nCombo, SR, fateRows} = m;
   const [sel, setSel] = useState(() => initialName(rows, best));
+  useEffect(() => { try { if (!/item=/.test(location.hash) && sel) history.replaceState(null, "", "#item=" + encodeURIComponent(sel)); window.dispatchEvent(new Event("lifebar:sel")); } catch (e) {} }, [sel]);
   const [scaleMode, setScaleMode] = useState("one");
   const scale = scaleMode === "all" ? M.STORES : 1;
   const sorted = useMemo(() => rows.slice().sort(byName), [rows]);
@@ -471,7 +473,7 @@ function App() {
     + " · 파레트 KS T11 " + M.PALLET.w + "×" + M.PALLET.d + "m, 적재 높이 " + M.PALLET.h + "m·효율 " + Math.round(M.PALLET.eff * 100) + "%(가상) → 파레트당 " + M.palletCbm().toFixed(2) + "CBM";
   const choose = name => {
     setSel(name);
-    try { history.replaceState(null, "", "#item=" + encodeURIComponent(name)); } catch (e) {}
+    try { history.replaceState(null, "", "#item=" + encodeURIComponent(name)); window.dispatchEvent(new Event("lifebar:sel")); } catch (e) {}
   };
   return html`<div className="app">
     <header className="top">
