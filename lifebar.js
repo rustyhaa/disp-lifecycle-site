@@ -3,6 +3,7 @@
    <script src="lifebar.js" data-site="import|product|disp"></script> */
 (function () {
   var P = [{"id": "P01", "name": "멸균우유 24입", "type": 1, "sr": "SR-2536-01"}, {"id": "P02", "name": "바닐라 바 아이스크림", "type": 2, "sr": "SR-2506-02"}, {"id": "P03", "name": "초코 콘 아이스크림", "type": 3, "sr": "SR-2508-03"}, {"id": "P04", "name": "딸기 파인트 아이스크림", "type": 3, "sr": "SR-2510-01"}, {"id": "P05", "name": "얼큰 봉지라면 5입", "type": 4, "sr": "SR-2511-04"}, {"id": "P06", "name": "트러플 감자스낵", "type": 5, "sr": "SR-2631-02"}, {"id": "P07", "name": "짜장 봉지라면 멀티팩", "type": 6, "sr": "SR-2615-01"}, {"id": "P08", "name": "매운 컵라면", "type": 6, "sr": "SR-2519-02"}];
+  var TOUR = [{"site": "product", "path": "#/", "sel": "#h-list", "title": "문제: 체화재고가 계속 늘어난다", "text": "가상 회사의 체화재고가 12주 동안 18.0억 늘었습니다. 어디서 늘었고 어느 상품부터 볼지, 그리고 그 상품에 무슨 일이 있었는지를 끝까지 따라가 보려고 만든 화면 세 개입니다."}, {"site": "product", "path": "#/p/P03", "sel": "#chartbox", "act": "cf-off", "title": "상품 하나의 전체 이력을 한 시간축에", "text": "초코 콘 아이스크림(유형 3 · 계절성). 상태·행사·입고(발주 주체별)·판매·센터/점포 재고·체화를 같은 주 단위로 쌓았습니다. 동그라미 번호는 규칙에 걸린 사건입니다."}, {"site": "product", "path": "#/p/P03", "sel": "#chartbox", "act": "cf-off", "title": "판매는 정상이었다. 문제는 발주 시점", "text": "판매 줄의 회색 띠는 같은 유형 가상 상품 40개의 정상 범위(25~75%)입니다. 판매는 87주 중 72주가 띠 안에 있었는데, 정점이 지난 뒤 들어온 예외발주 때문에 재고만 쌓였습니다."}, {"site": "product", "path": "#/p/P03", "sel": "#p-cf-card", "act": "cf-on", "title": "유형대로 발주했다면", "text": "정상 모양만큼만 채웠다면 체화 최대 6,672만원 → 160만원. 대신 품절로 못 판 수량이 1,961개 생깁니다. 공짜 개선이 아니라 맞바꿈이라는 것까지 숫자로 보여 줍니다."}, {"site": "import", "path": "#SR-2508-03", "sel": "#kp", "title": "앞단: 품의 추적 화면", "text": "같은 상품을 품의 기준으로 봅니다. 합의 30,000개 대비 입고 64,000개(213%). 이 화면의 경보는 '첫 4주 판매율'로 판단하는데, 유형 1처럼 초반 행사로 정점이 오는 상품은 이 규칙에 걸리지 않는다는 것도 이 데이터에서 드러났습니다."}, {"site": "disp", "path": "lifecycle.html#item=초코 콘 아이스크림", "sel": ".card.det", "title": "뒷단: 처분 화면 (샘플 점포 1곳)", "text": "시즌 종료 처분 2회. 1회차는 할인 중 주평균 5.0개로 할인 전 15.6개보다 오히려 낮았습니다(배수 0.3배). 시즌이 끝난 뒤의 할인은 반응이 약했습니다."}, {"site": "disp", "path": "easy.html#item=초코 콘 아이스크림", "sel": ".grid", "title": "상품마다 결정하지 않고 규칙을 설계", "text": "처분은 상품별로 하나씩 정하는 대신, 할인 규칙(정책)을 바꿔 보고 결과를 미리 보는 방식으로 만들었습니다. 발주종료된 상품을 대상으로, 가정 65가지에서 결과가 어떻게 달라지는지까지 함께 보여 줍니다."}, {"site": "product", "path": "#/p/P05", "sel": "#chartbox", "act": "cf-off", "title": "유형을 모르면 처분도 틀린다", "text": "얼큰 봉지라면 5입은 겨울에 다시 오르는 유형 4입니다. 여름 저점에서 처분했고, 겨울에는 7주 품절로 4,363개를 못 팔았습니다. 판매 막대가 정상 범위 아래로 떨어진 구간입니다."}, {"site": "product", "path": "#/p/P04", "sel": "#chartbox", "act": "cf-off", "title": "같은 유형, 다른 결과", "text": "딸기 파인트 아이스크림도 유형 3(계절성)이지만 정점 전에 발주를 줄여 체화 없이 시즌을 마감했습니다. 판매 모양은 초코 콘 아이스크림과 같고, 발주 시점만 다릅니다."}, {"site": "product", "path": "#/", "sel": null, "title": "정리", "text": "판매 수명 유형 6가지(정점 초반·완만 상승·계절성·하락 후 재상승·신상품·행사 급등)마다 가상 상품을 1~2개 만들고, 품의 추적 → 상품 한 장 → 처분 세 화면이 같은 데이터와 같은 링크를 쓰게 했습니다. 모든 숫자와 상품은 가상입니다."}];
   var me = document.currentScript, here = (me && me.dataset.site) || "product";
   var BASE = {
     import: "https://rustyhaa.github.io/import-lifecycle-demo/",
@@ -45,11 +46,19 @@
     ".lfb .lfb-st a{color:#fff;opacity:.62;text-decoration:none;padding:5px 10px;border-radius:7px;white-space:nowrap}.lfb .lfb-st a:hover{opacity:1;background:rgba(255,255,255,.08)}" +
     ".lfb .lfb-st a.on{opacity:1;background:rgba(255,255,255,.14);font-weight:600}.lfb .lfb-st i{opacity:.4;font-style:normal}" +
     ".lfb select{background:#24314F;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:4px 8px;font:inherit;max-width:260px}" +
+    ".lfb .lfb-tour{background:#1FA39A;color:#fff;border:0;border-radius:7px;padding:5px 12px;font:inherit;font-weight:600;cursor:pointer}.lfb .lfb-tour:hover{filter:brightness(1.08)}" +
+    ".lfb-hl{outline:3px solid #1FA39A !important;outline-offset:6px;border-radius:10px;transition:outline-offset .2s}" +
+    ".lfb-cap{position:fixed;right:20px;bottom:20px;z-index:10000;width:400px;max-width:calc(100vw - 32px);background:#fff;color:#16223D;border-radius:14px;box-shadow:0 12px 40px rgba(22,34,61,.28),0 0 0 1px rgba(22,34,61,.08);padding:16px 18px;font:14px/1.6 Pretendard,'Pretendard Variable',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
+    ".lfb-cap .k{font-size:12px;color:#11796F;font-weight:700;letter-spacing:.03em}.lfb-cap h3{font-size:16px;margin:2px 0 6px;font-weight:700}.lfb-cap p{margin:0;color:#4B5B78;font-size:13.5px}" +
+    ".lfb-cap .bar2{height:3px;background:#E1E6EE;border-radius:2px;margin:12px 0 10px;overflow:hidden}.lfb-cap .bar2 i{display:block;height:100%;background:#1FA39A}" +
+    ".lfb-cap .bt{display:flex;gap:8px;justify-content:flex-end}.lfb-cap button{font:inherit;font-size:13px;border-radius:8px;padding:6px 12px;cursor:pointer;border:1px solid #E1E6EE;background:#fff;color:#16223D}" +
+    ".lfb-cap button.pr{background:#16223D;color:#fff;border-color:#16223D;font-weight:600}.lfb-cap button.x{margin-right:auto;border:0;color:#8592A8;padding-left:0}" +
+    "@media (max-width:700px){.lfb-cap{right:12px;left:12px;bottom:12px;width:auto}}" +
     ".lfb .lfb-sp{flex:1}.lfb .lfb-tg{font-size:12px;opacity:.6;white-space:nowrap}" +
     "@media (max-width:700px){.lfb{padding:7px 12px;gap:8px}.lfb .lfb-tg{display:none}.lfb select{max-width:150px}}";
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
   var bar = document.createElement("div"); bar.className = "lfb"; bar.setAttribute("role", "navigation");
-  bar.innerHTML = '<b>재고 생애</b><select aria-label="상품 고르기"></select><span class="lfb-st"></span><span class="lfb-sp"></span><span class="lfb-tg">가상 데이터 · 판매 수명 유형 6가지</span>';
+  bar.innerHTML = '<b>재고 생애</b><select aria-label="상품 고르기"></select><span class="lfb-st"></span><span class="lfb-sp"></span><button type="button" class="lfb-tour">둘러보기 ▶</button><span class="lfb-tg">가상 데이터 · 판매 수명 유형 6가지</span>';
   var sel = bar.querySelector("select"), steps = bar.querySelector(".lfb-st");
   P.forEach(function (p) { var o = document.createElement("option"); o.value = p.id; o.textContent = "유형 " + p.type + " · " + p.name; sel.appendChild(o); });
   function render() {
@@ -69,4 +78,49 @@
   window.addEventListener("lifebar:sel", render);
   document.body.insertBefore(bar, document.body.firstChild);
   render();
+
+  /* ---------- 둘러보기: 장면 번호를 주소(?tour=N)에 실어 세 화면을 오간다 ---------- */
+  function tourStep() { var m = location.search.match(/[?&]tour=(\d+)/); return m ? +m[1] : -1; }
+  function tourUrl(k) {
+    var s = TOUR[k], hash = s.path.indexOf("#") >= 0 ? s.path.slice(s.path.indexOf("#")) : "", file = s.path.indexOf("#") > 0 ? s.path.slice(0, s.path.indexOf("#")) : "";
+    var q = "?tour=" + k;
+    if (s.site !== here) return BASE[s.site] + file + q + hash;
+    return (file || (here === "disp" ? "lifecycle.html" : location.pathname.split("/").pop() || "./")) + q + hash;
+  }
+  function tourGo(k) { if (k < 0 || k >= TOUR.length) return tourEnd(); location.href = tourUrl(k); }
+  function tourEnd() {
+    var c = document.querySelector(".lfb-cap"); if (c) c.remove();
+    document.querySelectorAll(".lfb-hl").forEach(function (e) { e.classList.remove("lfb-hl"); });
+    try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {}
+  }
+  function tourShow(k) {
+    var s = TOUR[k]; if (!s) return;
+    var cap = document.createElement("div"); cap.className = "lfb-cap"; cap.setAttribute("role", "dialog"); cap.setAttribute("aria-label", "둘러보기");
+    cap.innerHTML = '<div class="k">둘러보기 ' + (k + 1) + " / " + TOUR.length + "</div><h3></h3><p></p>" +
+      '<div class="bar2"><i style="width:' + Math.round((k + 1) / TOUR.length * 100) + '%"></i></div>' +
+      '<div class="bt"><button type="button" class="x">끝내기</button>' + (k ? '<button type="button" class="pv">← 이전</button>' : "") +
+      '<button type="button" class="pr">' + (k < TOUR.length - 1 ? "다음 →" : "처음으로") + "</button></div>";
+    cap.querySelector("h3").textContent = s.title; cap.querySelector("p").textContent = s.text;
+    cap.querySelector(".x").onclick = tourEnd;
+    if (k) cap.querySelector(".pv").onclick = function () { tourGo(k - 1); };
+    cap.querySelector(".pr").onclick = function () { k < TOUR.length - 1 ? tourGo(k + 1) : tourGo(0); };
+    document.body.appendChild(cap);
+    document.addEventListener("keydown", function (e) { if (e.key === "ArrowRight") cap.querySelector(".pr").click(); else if (e.key === "ArrowLeft" && k) tourGo(k - 1); else if (e.key === "Escape") tourEnd(); });
+    var t0 = Date.now();
+    (function find() {
+      if (s.act) {
+        var b = document.getElementById("p-cf");
+        if (b && !b.disabled) { var on = b.classList.contains("on"); if ((s.act === "cf-on") !== on) b.click(); }
+        else if (!b && Date.now() - t0 < 6000) return setTimeout(find, 150);
+      }
+      if (!s.sel) return;
+      var el = document.querySelector(s.sel);
+      if (!el || !el.getBoundingClientRect().height) { if (Date.now() - t0 < 6000) setTimeout(find, 150); return; }
+      document.querySelectorAll(".lfb-hl").forEach(function (e) { e.classList.remove("lfb-hl"); });
+      el.classList.add("lfb-hl");
+      setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 900);   // 화면이 글꼴을 받고 다시 그린 뒤에 이동
+    })();
+  }
+  bar.querySelector(".lfb-tour").onclick = function () { tourGo(0); };
+  if (tourStep() >= 0 && TOUR[tourStep()] && TOUR[tourStep()].site === here) tourShow(tourStep());
 })();
