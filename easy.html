@@ -80,6 +80,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(
 <script>
 let ITEMS = [], META = {}, DATA = [];
 const {useMemo, useEffect, useRef, useState} = React;
+const qf = v => v >= 100 ? Math.round(v).toLocaleString("ko-KR") : v.toFixed(1);   // 주평균 수량: 100개 이상이면 정수
 const html = htm.bind(React.createElement);
 const M = window.DispPolicy, SM = window.DispSource;
 
@@ -303,7 +304,7 @@ function Card2({row, sr, scale}) {
     const term = row.p.term;
     const termPins = (term >= 0 && term < n) ? [{coord: [X[term], isNum(row.p.stock[term]) ? toU(row.p.stock[term]) : 0], value: "규칙: " + wkLabel(d.weeks[term]) + " 정리", itemStyle: {color: "#2563EB"}}] : [];
     return mkOpt({
-      grid: {left: 44, right: 16, top: 40, bottom: 34},
+      grid: {left: 66, right: 16, top: 40, bottom: 34},
       tooltip: {trigger: "axis", backgroundColor: "#0F172A", borderWidth: 0, textStyle: {color: "#fff", fontSize: 12}, ...(pal ? {valueFormatter: v => palFmt(v)} : {})},
       xAxis: {type: "category", data: X, boundaryGap: false, axisLabel: {color: "#94A3B8", hideOverlap: true, interval: "auto"}, axisLine: {lineStyle: {color: "#E2E8F0"}}, axisTick: {show: false}},
       yAxis: {type: "value", name: pal ? (scale > 1 ? "재고(파레트·전 점포 환산)" : "재고(파레트)") : "재고(개)", nameTextStyle: {color: "#94A3B8", fontSize: 11}, axisLabel: {color: "#94A3B8"}, splitLine: {lineStyle: {color: "#F1F3F6"}}},
@@ -446,7 +447,7 @@ function Card4({row, sel}) {
     ${disp.length
       ? html`<div className="hist">${cards.map((x, i) => html`<div className="hc" key=${i}>
           <b>${x.seq}회차 · ${lbl(w, x.start)}~${isOpen(x.rel) ? "진행 중" : lbl(w, x.rel)}</b>
-          ${x.onW}주 · 판매 ${fmt1(x.preQ)}→${fmt1(x.onQ)}개 · ${x.mult == null ? "—" : x.mult.toFixed(1) + "배"}<br/>
+          ${x.onW}주 · 판매 ${qf(x.preQ)}→${qf(x.onQ)}개 · ${x.mult == null ? "—" : x.mult.toFixed(1) + "배"}<br/>
           <span className="j" style=${{background: CAT_COL[x.c] + "22", color: CAT_COL[x.c]}}>${x.c}</span>
         </div>`)}</div>`
       : html`<div className="small">이 상품은 처분 이력이 없습니다</div>`}
@@ -464,8 +465,7 @@ function App() {
   const {P, A, T, G, S, best, rows, others, band, nCombo, SR, fateRows} = m;
   const [sel, setSel] = useState(() => initialName(rows, best));
   useEffect(() => { try { if (!/item=/.test(location.hash) && sel) history.replaceState(null, "", "#item=" + encodeURIComponent(sel)); window.dispatchEvent(new Event("lifebar:sel")); } catch (e) {} }, [sel]);
-  const [scaleMode, setScaleMode] = useState("one");
-  const scale = scaleMode === "all" ? M.STORES : 1;
+  const scale = 1;   // 데이터가 이미 전 점포 합계라 환산하지 않음
   const sorted = useMemo(() => rows.slice().sort(byName), [rows]);
   const row = rows.find(r => r.d.name === sel) || rows[0];
   const sr = row ? SR.rows.find(x => x.d === row.d) : null;
@@ -491,10 +491,8 @@ function App() {
         ${others.length ? html`<optgroup label="정책 대상 아님 (상품 생애주기에서 보기)">${others.slice().sort(byName).map(r => html`<option key=${r.d.name} value=${"x:" + r.d.name} disabled>${r.d.name} · ${(r.it && r.it.why) || "정책 대상 아님"}</option>`)}</optgroup>` : null}
       </select>
       <div className="seg">
-        <button className=${scale === 1 ? "on" : ""} onClick=${() => setScaleMode("one")}>1개 점포</button>
-        <button className=${scale > 1 ? "on" : ""} onClick=${() => setScaleMode("all")}>전 점포 환산</button>
+        <span className="on" style=${{padding:"6px 12px",fontWeight:600}}>전 점포 합계</span>
       </div>
-      ${scale > 1 ? html`<span className="pnote amb">가상 점포 ${M.STORES}곳에 같은 결과를 곱한 값(점포 간 차이 무시)</span>` : null}
       <span className="pnote">정책 대상 ${rows.length}개 / 전체 ${rows.length + others.length}개 · 정책 대상 = 발주종료 뒤 재고가 남은 상품 · 나머지는 <a className="link" href="lifecycle.html">상품 생애주기</a>에서</span>
     </div>
     ${row
@@ -506,7 +504,7 @@ function App() {
         </div>`
       : html`<section className="card q"><div className="small">정책 대상 상품이 없습니다.</div></section>`}
     <div className="foot">
-      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과 · ${volText} · 전 점포 환산은 가상 점포 ${M.STORES}곳 기준</div>
+      <div><b>이 화면의 기준</b> 남은 재고가 ${P.X}주 치를 넘으면 ${P.d1}% 할인 → ${P.N}주 지켜봐 반응이 ${P.Y.toFixed(1)}배 미만이면 ${P.d2}% → 할인 시작 뒤 ${P.Z}주 안에 안 팔리면 정리 심사 · 할인 효과(30%에 ${A.r30}배, 50%에 ${A.r50}배)와 처리 손실(${A.loss}%)은 가정 · 문장 등급은 가정 ${G.n}가지로 다시 계산한 결과 · ${volText}</div>
       <div><a className="link" href="policy.html">정책 설계에서 바꿔 보기 →</a></div>
       <div>${META.note || ""}</div>
     </div>

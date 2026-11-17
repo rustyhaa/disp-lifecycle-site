@@ -136,6 +136,7 @@ h1{white-space:nowrap}
 <script>
 let ITEMS = [], META = {};
 const {useState, useMemo, useRef, useEffect} = React;
+const qf = v => v >= 100 ? Math.round(v).toLocaleString("ko-KR") : v.toFixed(1);   // 주평균 수량: 100개 이상이면 정수
 const html = htm.bind(React.createElement);
 const J = {
   "반응":      {fg:"#1D4ED8", bg:"#EEF3FF", dot:"#3B6CF6"},
@@ -294,8 +295,8 @@ function Detail({d, mult}) {
       <${Chart} d=${d} key=${d.name} />
     </div>
     <div className="stats">
-      <div className="st"><div className="l">처분 전 주평균</div><div className="v">${d.preQ.toFixed(1)}개</div><div className="s">${d.hist && d.hist.length ? "직전 처분 뒤~시작 전" : "시작 전 판매"}</div></div>
-      <div className="st"><div className="l">처분 중 주평균</div><div className="v">${d.onQ.toFixed(1)}개</div><div className="s">${m == null ? "비교 불가" : m.toFixed(1) + "배"}</div></div>
+      <div className="st"><div className="l">처분 전 주평균</div><div className="v">${qf(d.preQ)}개</div><div className="s">${d.hist && d.hist.length ? "직전 처분 뒤~시작 전" : "시작 전 판매"}</div></div>
+      <div className="st"><div className="l">처분 중 주평균</div><div className="v">${qf(d.onQ)}개</div><div className="s">${m == null ? "비교 불가" : m.toFixed(1) + "배"}</div></div>
       <div className="st"><div className="l">처분 중 순매출</div><div className="v">${man(d.onAmt)}</div><div className="s">${d.onW}주 합계</div></div>
       <div className="st"><div className="l">재고 금액</div><div className="v">${man(d.stkNowWon)}</div><div className="s">시작 ${man(d.stkStartWon)}</div></div>
       <div className="st"><div className="l">처분손</div><div className="v" style=${{color: d.lossWon > 0 ? "#B42318" : undefined}}>${loss(d.lossWon)}</div><div className="s">${d.lossWon == null ? "원가 자료 없음" : d.lossWeeks + "주 원가 미만 판매"}</div></div>
@@ -382,7 +383,7 @@ function App() {
           <tbody>${view.map(({d,j}) => { const m = d.preQ > 0 && j !== "보류" ? d.onQ/d.preQ : null; return html`<tr key=${d.name} className=${"r" + (d.name===sel?" sel":"")} onClick=${()=>setSel(d.name)}>
             <td style=${{paddingLeft:18}}><div className="pn">${d.name}${d.nEv > 1 ? html`<span className="tag">재처분 ${d.nEv}회차</span>` : null}</div><div className="pk">${d.kind}</div></td>
             <td style=${{color:"#475569"}}>${wkLabel(d.start)}<span className="arrow">→</span>${d.rel ? wkLabel(d.rel) : html`<span style=${{color:"#94A3B8"}}>진행 중</span>`}</td>
-            <td className="num"><span style=${{color:"#94A3B8"}}>${d.preQ.toFixed(1)}</span><span className="arrow">→</span><b style=${{fontWeight:600}}>${d.onQ.toFixed(1)}</b></td>
+            <td className="num"><span style=${{color:"#94A3B8"}}>${qf(d.preQ)}</span><span className="arrow">→</span><b style=${{fontWeight:600}}>${qf(d.onQ)}</b></td>
             <td className="num mult" style=${{color: m == null ? "#CBD2DC" : m >= mult ? J["반응"].fg : "#334155"}}>${m == null ? "—" : m.toFixed(1) + "×"}</td>
             <td><${Spark} d=${d} /></td>
             <td className="num">${man(d.stkStartWon)}</td>

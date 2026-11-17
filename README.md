@@ -13,7 +13,7 @@
   - `lifecycle.html` **상품 생애주기**: 시간축 위에 정책 단계 전환 시점을 얹음. 맨 위 "재고 출처" 요약과 상세는 발주종료 잔고가 어느 입고에서 왔고 결국 무엇이 됐는지(입고 추정 + FIFO 가정) 보여 줌
   - `story.html` **설계 이야기**: 왜 상품별 결정 대신 정책 설계인가, 버린 길, 모델과 가정, 주장하지 않는 것
 - `policy.js` 정책 계산 모델, `source.js` 재고 출처 모델(화면 공용), `tests/` 숫자 검사(`node tests/policy.test.js`, `node tests/source.test.js`, `tests/robust.test.js`, `node tests/volume.test.js`)
-- 데이터: `lifecycle.json`(상품 8개 · 판매 수명 유형 6가지마다 1~2개), `data.json`(처분 4건). [품의 추적](https://rustyhaa.github.io/import-lifecycle-demo/)·[상품 한 장](https://rustyhaa.github.io/product-lifecycle-demo/)과 같은 가상 상품이고, 처분 화면은 샘플 점포 1곳 기준입니다. 둘 다 같은 가상 상품에서 만든 **시연용 가상 데이터이며 실제 상품·수치와 무관**합니다. 단계 코드·처분유형·기준값도 가상 설정입니다.
+- 데이터: `lifecycle.json`(상품 8개 · 판매 수명 유형 6가지마다 1~2개), `data.json`(처분 4건). [품의 추적](https://rustyhaa.github.io/import-lifecycle-demo/)·[상품 한 장](https://rustyhaa.github.io/product-lifecycle-demo/)과 같은 가상 상품이고, 처분 화면도 전 점포 합계(센터+점포) 기준이라 세 화면의 숫자가 같습니다. 둘 다 같은 가상 상품에서 만든 **시연용 가상 데이터이며 실제 상품·수치와 무관**합니다. 단계 코드·처분유형·기준값도 가상 설정입니다.
 
 ## 외부 자원
 - ECharts 5.5.1 (jsDelivr, 한눈에 보기 그림용 스크립트)

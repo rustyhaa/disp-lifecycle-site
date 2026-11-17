@@ -145,6 +145,7 @@ h1{white-space:nowrap}
 <script>
 let ITEMS = [], META = {}, AVG12 = 0;
 const {useState, useMemo, useRef, useEffect} = React;
+const qf = v => v >= 100 ? Math.round(v).toLocaleString("ko-KR") : v.toFixed(1);   // 주평균 수량: 100개 이상이면 정수
 const html = htm.bind(React.createElement);
 const J = {
   "신상품 진행": {fg:"#6D28D9", bg:"#F3EEFF", dot:"#8B5CF6"},
@@ -291,8 +292,8 @@ function Detail({d, lim, sr, fifo}) {
       <${SourceNote} d=${d} sr=${sr} fifo=${fifo} />
     </div>
     <div className="stats">
-      <div className="st"><div className="l">출시 12주 주평균</div><div className="v">${d.first12 === null ? "—" : d.first12.toFixed(1) + "개"}</div><div className="s">${d.first12 === null ? (d.li >= 0 ? "12주 안 됨" : "출시 시점 자료 없음") : "전체 평균 " + AVG12.toFixed(1) + "개"}</div></div>
-      <div className="st"><div className="l">정상 기간 주평균</div><div className="v">${d.normQ.toFixed(1)}개</div><div className="s">${d.status.filter(s=>s===2).length}주</div></div>
+      <div className="st"><div className="l">출시 12주 주평균</div><div className="v">${d.first12 === null ? "—" : qf(d.first12) + "개"}</div><div className="s">${d.first12 === null ? (d.li >= 0 ? "12주 안 됨" : "출시 시점 자료 없음") : "전체 평균 " + AVG12.toFixed(1) + "개"}</div></div>
+      <div className="st"><div className="l">정상 기간 주평균</div><div className="v">${qf(d.normQ)}개</div><div className="s">${d.status.filter(s=>s===2).length}주</div></div>
       <div className="st"><div className="l">발주종료 뒤 재고</div><div className="v">${d.ei < 0 ? "—" : d.oi >= 0 ? (d.oi - d.ei) + "주 만 소진" : d.stkNow + "개 남음"}</div><div className="s">${d.ei < 0 ? "발주 중" : d.oi >= 0 ? "판매종료 " + wkLabel(d.soldOut) : d.sinceEo + "주째 · " + man(d.stkNow*d.cost)}</div></div>
       <div className="st"><div className="l">생애 순매출</div><div className="v">${man(d.lifeAmt)}</div><div className="s">${d.n}주 합계</div></div>
     </div>
@@ -303,7 +304,7 @@ function Detail({d, lim, sr, fifo}) {
       <div><div className="sec">처분 이력 <span style=${{fontWeight:500,color:"#94A3B8"}}>처분 화면과 같은 기준</span></div>
         ${d.ds.length ? html`<div className="dl">${d.ds.map(s => { const dj = djudge(s); return html`<div className="drow" key=${s.seq}>
           <span className="q">${s.seq}회차</span>
-          <div><div className="p">${wkLabel(s.start)} – ${s.rel ? wkLabel(s.rel) : "진행 중"}</div><div className="x">${s.onW}주 · ${s.preQ.toFixed(1)}→${s.onQ.toFixed(1)}개${s.preQ > 0 ? " · " + (s.onQ/s.preQ).toFixed(1) + "배" : ""}</div></div>
+          <div><div className="p">${wkLabel(s.start)} – ${s.rel ? wkLabel(s.rel) : "진행 중"}</div><div className="x">${s.onW}주 · ${qf(s.preQ)}→${qf(s.onQ)}개${s.preQ > 0 ? " · " + (s.onQ/s.preQ).toFixed(1) + "배" : ""}</div></div>
           <div className="r"><${Pill} j=${dj} P=${DJ} /></div>
         </div>`; })}
         <a className="link" style=${{justifyContent:"center"}} href=${dispLink(d)}>처분 화면에서 ${d.ds.length > 1 ? "재처분 경과" : "처분 경과"} 보기 →</a></div>`
@@ -450,7 +451,7 @@ function App() {
             <td style=${{paddingLeft:18}}><div className="pn">${d.name}</div><div className="pk">${d.cat}</div></td>
             <td><span className="stg"><i style=${{background:s.c}}></i>${s.t}${d.sinceEo !== null && d.oi < 0 ? html`<span style=${{color:"#94A3B8"}}>${" " + d.sinceEo + "주째"}</span>` : null}</span></td>
             <td style=${{color:"#475569"}}>${d.launch ? wkLabel(d.launch) : html`<span style=${{color:"#94A3B8"}}>'25 이전</span>`}</td>
-            <td className="num">${d.normQ.toFixed(1)}</td>
+            <td className="num">${qf(d.normQ)}</td>
             <td>${d.ds.length ? html`<span className="dcnt">${d.ds.length}회${d.ongoing ? " · 진행" : ""}</span>` : html`<span style=${{color:"#CBD2DC"}}>—</span>`}</td>
             <td><${Spark} d=${d} /></td>
             <td className="num">${man(d.stkNow*d.cost)}</td>
